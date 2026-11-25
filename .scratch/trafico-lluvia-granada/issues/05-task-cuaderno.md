@@ -1,7 +1,7 @@
 # Task: construir y ejecutar el cuaderno
 
 Type: task
-Status: open
+Status: resolved
 Blocked by: 03, 04
 Spec: [../spec.md](../spec.md)
 
@@ -11,4 +11,12 @@ Construir el cuaderno reproducible que carga la red, define los escenarios de ll
 
 ## Answer
 
-_(pendiente)_
+Resuelto por los tickets de implementación 09–14:
+
+- [09](09-cuaderno-minimo-un-escenario.md): cuaderno mínimo de extremo a extremo.
+- [10](10-escenarios-sensibilidad-corredores.md): escenarios completos, sensibilidad y corredores.
+- [11](11-criticidad-ranking-enlaces.md): criticidad y ranking de enlaces.
+- [12](12-visor-html-canvas.md) y [13](13-visor-ruta-vista-previa.md): visor HTML de trayectos y exportación de rutas.
+- [14](14-limites-contraste-cierre.md): límites, contraste causal y cierre.
+
+El escenario opcional de enlaces cortados queda fuera (ticket 07 abierto); se deja constancia en el cuaderno.

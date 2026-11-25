@@ -13,7 +13,8 @@ from pathlib import Path
 
 import pandas as pd
 
-from .analisis import _peso, _ruta
+from .analisis import peso_aristas, ruta_optima
+from .escenarios import NIVELES
 
 PLANTILLA = Path(__file__).with_name("plantilla_visor.html")
 SALIDA_POR_DEFECTO = Path("salidas") / "visor_trayectos.html"
@@ -34,14 +35,14 @@ def construir_datos(G, muestra: pd.DataFrame) -> dict:
     if len(destinos) != 1:
         raise ValueError("El visor espera un único destino en la muestra.")
     destino = destinos[0]
-    seco = _peso(None, "central")
+    seco = peso_aristas(None, NIVELES[0])
 
     def xy(n):
         return [_r5(G.nodes[n]["x"]), _r5(G.nodes[n]["y"])]
 
     rutas = []
     for fila in muestra.itertuples():
-        ruta, t = _ruta(G, fila.origen, destino, seco)
+        ruta, t = ruta_optima(G, fila.origen, destino, seco)
         rutas.append(
             {
                 "corredor": fila.corredor,

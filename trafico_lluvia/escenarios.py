@@ -30,15 +30,39 @@ class Escenario:
 ESCENARIOS: dict[str, Escenario] = {
     e.nombre: e
     for e in [
-        Escenario("ligera", "< 2,5", (0.03, 0.01, 0.05), (0.03, 0.02, 0.05), "media"),
-        Escenario("moderada", "2,5 - 6,35", (0.07, 0.05, 0.10), (0.06, 0.04, 0.10), "media"),
-        Escenario("fuerte", "6,35 - 30", (0.11, 0.07, 0.20), (0.09, 0.06, 0.17), "baja"),
+        Escenario("ligera", "< 2,5", (0.03, 0.01, 0.05), (0.03, 0.02, 0.05),
+                 "Media: el HCM 6 dice 0; los empíricos, −2 a −5 %."),
+        Escenario("moderada", "2,5 - 6,35", (0.07, 0.05, 0.10), (0.06, 0.04, 0.10),
+                 "Alta: HCM y varios estudios convergen."),
+        Escenario("fuerte", "6,35 - 30", (0.11, 0.07, 0.20), (0.09, 0.06, 0.17),
+                 "Alta en capacidad (HCM), media en velocidad (rango amplio)."),
         Escenario(
             "torrencial", "> 30", (0.22, 0.15, 0.35), (0.20, 0.15, 0.35),
-            "muy baja (extrapolación)",
+            "Baja: extrapolación de eventos extremos; no es un factor HCM.",
         ),
     ]
 }
+
+
+HORA_PUNTA = "laborable sintética (solo etiqueta; no cambia el cálculo)"
+
+# Δ de capacidad del ticket 02 (sección 5). Solo contexto: NO se aplican en el cálculo.
+CAPACIDAD_CONTEXTO = {
+    "ligera": "−3 % (−2 a −8)",
+    "moderada": "−7 % (−6 a −10)",
+    "fuerte": "−14 % (−11 a −30)",
+    "torrencial": "−25 % (−20 a −40) + cierres",
+}
+
+
+def tabla_capacidad_contexto() -> pd.DataFrame:
+    """Δ de capacidad del ticket 02, como contexto: el modelo solo aplica velocidad."""
+    return pd.DataFrame(
+        [
+            {"escenario": n, "delta_capacidad": d, "aplicado": "no", "fuente": "ticket 02"}
+            for n, d in CAPACIDAD_CONTEXTO.items()
+        ]
+    )
 
 
 def tabla_escenarios(escenarios=None) -> pd.DataFrame:
@@ -56,6 +80,7 @@ def tabla_escenarios(escenarios=None) -> pd.DataFrame:
                 "reduccion_interurbana": e.interurbana[0],
                 "rango_interurbana": f"{e.interurbana[1]:.0%} a {e.interurbana[2]:.0%}",
                 "confianza": e.confianza,
+                "hora_punta": HORA_PUNTA,
                 "fuente": "ticket 02",
             }
             for e in escenarios
