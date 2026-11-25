@@ -112,8 +112,9 @@ opencode
 
 1. Se abre la interfaz del agente en la terminal. **No hace falta iniciar sesión** para usar los modelos gratuitos.
 2. Escribe `/models` y pulsa Enter. Elige uno de los que terminan en **free** (gratuito). La lista cambia a menudo, así que no te indicamos uno concreto; lee la nota de privacidad de abajo antes de elegir.
+   > **Aviso:** los modelos gratuitos son más lentos y menos fiables que los de pago (a veces se saltan pasos o se quedan sin cuota). Podrás seguir el taller con ellos, pero no esperes exactamente lo mismo que verás en el proyector.
 3. Escribe: **¿Qué hay en esta carpeta?** y pulsa Enter. Debería describirte el repositorio (en español).
-4. Escribe: **Lista las skills que tienes disponibles.** Deberían aparecer, entre otras, `grilling`, `prototype`, `research` y `notebook-pairing`. (Otras, como `/wayfinder` o `/to-spec`, solo se activan cuando tú las invocas escribiendo su nombre con `/`, así que puede que no las mencione.) **No ejecutes ninguna todavía**: lo haremos juntos en el taller.
+4. Escribe: **Lista las skills que tienes disponibles.** Deberían aparecer, entre otras, `grilling`, `prototype`, `research` y `notebook-pairing`. (Otras, como `wayfinder` o `to-spec`, solo se activan cuando tú las invocas, así que puede que no las mencione.) **En OpenCode, las skills se invocan escribiendo `@` y su nombre** (por ejemplo `@wayfinder`); en el proyector verás `/wayfinder` porque el ponente usa Claude Code, donde se escribe con `/`. **No ejecutes ninguna todavía**: lo haremos juntos en el taller.
 5. Para salir: `/exit` (o Ctrl+C).
 
 Si OpenCode te pide aprobar una acción (leer o modificar un archivo, ejecutar una orden), léela antes de aceptar.
@@ -155,7 +156,9 @@ Comprueba con `agy --version` y arranca con `agy` dentro de la carpeta del repos
 | Windows: `winget` no existe | Actualiza «Instalador de aplicación» desde Microsoft Store, o instala cada programa desde su web: <https://git-scm.com>, <https://docs.astral.sh/uv/>, <https://nodejs.org>. |
 | `uv sync` falla con errores de red | Prueba con otra red (algunas redes institucionales bloquean descargas) y repite. |
 | `check.py` dice que faltan skills o el grafo | Descargaste una copia incompleta: vuelve a clonar o descargar el ZIP sin borrar carpetas ocultas. |
+| OpenCode da un error de límite de uso (*rate limit*) | Los modelos gratuitos tienen cuota y en el aula la compartimos muchos. Elige otro modelo *free* con `/models` y sigue: el trabajo no se pierde, porque el estado está en los ficheros del repositorio (`.scratch/`). |
 | OpenCode no muestra modelos gratuitos o da error al responder | Comprueba tu conexión, cierra y vuelve a abrir `opencode`, y elige otro modelo *free* en `/models`. Si persiste, usa el plan B. |
+| El agente no te hace preguntas y escribe directamente | Los modelos gratuitos son menos obedientes. Añade al final: «Antes de escribir nada, hazme las preguntas de una en una y espera mi respuesta». |
 | El agente responde en inglés | Pídeselo en español; `AGENTS.md` ya se lo indica, pero algunos modelos gratuitos son menos obedientes. |
 | Nada funciona | No pasa nada: podrás seguir el taller en el proyector y reintentarlo luego. |
 
