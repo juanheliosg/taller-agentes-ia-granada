@@ -317,7 +317,7 @@ html.reveal-print .reveal .slides .pdf-page > section.gracias { display: grid !i
 .reveal .etq-reparto { font-size: 22px; color: var(--texto-suave); text-align: right; }
 
 /* 14b. Vídeo de Rick Rubin */
-.reveal .rubin { display: grid; grid-template-columns: auto 1fr; gap: 48px; align-items: center; }
+.reveal .rubin { display: grid; grid-template-columns: auto auto 1fr; gap: 48px; align-items: center; }
 .reveal .rubin video { height: 540px; width: auto; display: block; background: #000; }
 .reveal .rubin .pie-video { font-size: var(--tam-pie); color: var(--texto-suave); }
 

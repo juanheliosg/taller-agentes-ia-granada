@@ -7,7 +7,7 @@ Presentación en reveal.js 5.1.0, vendorizado en `vendor/`. Funciona sin conexi�
 - `index.html`: todas las diapositivas, en orden.
 - `tema.css`: el único fichero de estilo. Colores, fuentes y tamaños están como variables al principio (`--acento`, `--tam-cuerpo`…).
 - `img/`: imágenes (`cartel-j2-informatica.jpg`: cartel de las Jornadas por Palestina, en sRGB y reducido).
-- El vídeo de Rick Rubin no se incluye (derechos de terceros): la diapositiva enlaza a youtube.com/shorts/akcSX81KOv4.
+- Los vídeos no se incluyen (derechos de terceros): la diapositiva enlaza a youtube.com/shorts/akcSX81KOv4 e instagram.com/reel/DdUvJkjy8xk.
 - `img/qr-repo.svg`, `img/qr-substack.svg`: códigos QR generados con `segno`.
 - `fonts/`: Source Serif 4 y Source Sans 3 (woff2, licencia OFL).
 - `capturas/`: capturas de cada diapositiva con todos los fragmentos visibles.
