@@ -67,7 +67,7 @@ def construir_datos(G, muestra: pd.DataFrame) -> dict:
             "id": [str(n) for n in G.nodes],
             "n": [xy(n) for n in G.nodes],
             "e": [
-                [idx[u], idx[v], round(min(d["travel_time"] for d in G[u][v].values()), 1)]
+                [idx[u], idx[v], round(min(d["travel_time"] for d in G[u][v].values()), 2)]
                 for u, v in G.edges()
                 if u != v
             ],

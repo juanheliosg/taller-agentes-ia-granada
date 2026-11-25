@@ -62,6 +62,26 @@ def cargar_muestra(G, ruta_csv=CSV_MUESTRA, destino=DESTINO_PUERTA_REAL) -> pd.D
     )
 
 
+def ampliar_muestra(G, muestra: pd.DataFrame, ruta_csv) -> pd.DataFrame:
+    """Incorpora a `muestra` las rutas exportadas por el visor («＋ Ruta» -> Exportar).
+
+    El CSV exportado tiene el mismo formato que `trayectos.csv` (más `nombre`, `factor`,
+    `vias` y `tiempo_ruta_s`). Cada fila es un par origen-destino: su `tiempo_seco_s` es el
+    de la ruta óptima, así que las vías forzadas no se incorporan. Devuelve la muestra
+    ampliada, ya verificada contra la red.
+    """
+    destinos = muestra["destino"].unique()
+    if len(destinos) != 1:
+        raise ErrorMuestra("La muestra debe tener un único destino para incorporar rutas exportadas.")
+    exportadas = cargar_muestra(G, ruta_csv, destinos[0])
+    tabla = pd.read_csv(ruta_csv)
+    if "nombre" in tabla:
+        exportadas["nombre"] = tabla["nombre"].to_numpy()
+    ampliada = pd.concat([muestra, exportadas], ignore_index=True)
+    verificar_muestra(G, ampliada)
+    return ampliada
+
+
 def verificar_muestra(G, muestra: pd.DataFrame, tolerancia_s: float = TOLERANCIA_S) -> None:
     """Comprueba que cada par tiene ruta y que su tiempo seco coincide con el CSV."""
     seco = _peso(None, "central")
