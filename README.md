@@ -20,6 +20,17 @@ Durante el taller la investigaremos en directo con un agente de IA: desde precis
 | `AGENTS.md` | Instrucciones que lee el agente (idioma, uso de `uv`) |
 | `pyproject.toml`, `uv.lock` | Dependencias de Python, gestionadas con [uv](https://docs.astral.sh/uv/) |
 
+## Ejecutar el cuaderno
+
+`cuaderno_lluvia.ipynb` calcula la degradación de la red viaria bajo lluvia (escenarios, sensibilidad, criticidad de enlaces, visor HTML) y declara sus límites. Tarda unos 2 minutos y deja tablas y figuras en `salidas/` (no se versiona).
+
+```bash
+uv run jupyter lab cuaderno_lluvia.ipynb          # interactivo
+uv run jupyter nbconvert --to notebook --execute cuaderno_lluvia.ipynb --output-dir /tmp/ejecutado   # de principio a fin
+```
+
+Pruebas: `uv run pytest` ejecuta todo, incluida la prueba de humo que corre el cuaderno entero (marcador `lento`, ~2 min). Para la ejecución rápida: `uv run pytest -m "not lento"`.
+
 ## Atribución
 
 - Las skills de ingeniería y productividad son de **Matt Pocock** ([mattpocock/skills](https://github.com/mattpocock/skills), licencia MIT), copiadas sin cambios en el commit `abeeaf9`.

@@ -22,3 +22,6 @@ package = false
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
+markers = [
+    "lento: prueba de humo que ejecuta el cuaderno entero (~2 min); excluir con -m \"not lento\"",
+]

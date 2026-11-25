@@ -1,7 +1,7 @@
 # Task: Límites, contraste causal y cierre para el taller
 
 Type: task
-Status: ready-for-agent
+Status: resolved
 Blocked by: 10, 11, 12
 Spec: [../spec.md](../spec.md)
 
@@ -20,3 +20,9 @@ Cierra el cuaderno como material de taller: sección de límites, sección «qu�
 ## Referencias
 
 Spec: Limitaciones (Further Notes), Out of Scope, Testing Decisions. Historias 2, 31–36, 41.
+
+## Answer
+
+Resuelto. El cuaderno termina con tres secciones: «Límites del modelo» (un solo factor de velocidad, demanda constante, hora punta sintética, sin semáforos/incidentes/comportamiento, factor ≈ 1/(1−δ) y por qué no reproduce la amplificación con demanda al 90–95 % de la capacidad), «Qué haría falta para el contraste causal» (TomTom Traffic Stats / HERE, cesión del CGIM, CGIM público, AEMET, SAIH, con los costes del ticket 01) y «Lo que queda fuera» (enlaces cortados, ticket 07 abierto; serie mensual, ticket 06 no incluida). Se corrigieron además unos `\n` literales de la sección de estabilidad (ticket 11).
+
+Prueba de humo en `tests/test_cuaderno.py`: ejecuta el cuaderno con nbconvert en una carpeta temporal y comprueba las 14 salidas esperadas de `salidas/` (marcador `lento`, registrado en `pyproject.toml`; excluir con `uv run pytest -m "not lento"`). Dura ~2 min. El README documenta cómo ejecutar el cuaderno con `uv run`.
