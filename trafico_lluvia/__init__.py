@@ -3,6 +3,7 @@
 from .analisis import ErrorSinRuta, Resultado, analizar, guardar_tablas
 from .escenarios import ESCENARIOS, Escenario, tabla_escenarios
 from .muestra import (
+    ampliar_muestra,
     ErrorGrafoNoEncontrado,
     ErrorMuestra,
     cargar_muestra,
@@ -12,6 +13,7 @@ from .muestra import (
 from .visor import generar_visor
 
 __all__ = [
+    "ampliar_muestra",
     "generar_visor",
     "ErrorGrafoNoEncontrado",
     "ErrorMuestra",

@@ -11,19 +11,52 @@ h1{font-size:15px;margin:0 0 4px}.nota{font-size:12px;color:#555;margin-bottom:1
 .tr{padding:2px 4px 2px 24px;font-size:12px;cursor:pointer;color:#444}.tr:hover{background:#f0f0f0}.tr.on{background:#ffe9a8}
 #barra{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:#222;border-radius:20px;padding:6px 8px;display:flex;gap:6px}
 #barra button{border:0;border-radius:14px;padding:6px 14px;background:#444;color:#fff;cursor:pointer}
+#ayuda{position:absolute;bottom:56px;right:8px;background:#fffc;padding:6px 10px;border-radius:6px;font-size:12px;display:none}
+#barra button.on{background:#e6007e}#barra button:disabled{opacity:.4;cursor:default}
 #info{position:absolute;top:8px;right:8px;background:#fffc;padding:6px 10px;border-radius:6px;font-size:12px;max-width:260px}
 </style></head><body>
 <div id="lateral"><h1>Trayectos periferia → Puerta Real</h1>
 <div class="nota">Muestra de accesos, no un modelo de la ciudad. Rueda: zoom · arrastrar: mover · clic en un trayecto (lista o ruta): zoom a él.</div>
 <div id="leyenda"></div></div>
-<div id="principal"><canvas id="cv"></canvas><div id="info"></div>
-<div id="barra"><button id="todo">Todo</button><!--BARRA_EXTRA--></div></div>
+<div id="principal"><canvas id="cv"></canvas><div id="info"></div><div id="ayuda"></div>
+<div id="barra"><button id="todo">Todo</button><button id="add">＋ Ruta</button><button id="clrv" style="display:none">Quitar vías</button><button id="exp" disabled>Exportar rutas</button></div></div>
 <script id="datos" type="application/json">/*DATOS*/</script>
+<script id="logica">
+/* Lógica pura de rutas (sin DOM): se prueba con node desde pytest. */
+const Logica=(()=>{
+const crear=GR=>{const n=GR.n.length,adj=Array.from({length:n},()=>[]),radj=Array.from({length:n},()=>[]);
+ GR.e.forEach(([u,v,t])=>{adj[u].push([v,t]);radj[v].push([u,t])});return{GR,n,adj,radj}};
+function dijkstra(A,n,s,g){const dist=new Float64Array(n).fill(Infinity),prev=new Int32Array(n).fill(-1);dist[s]=0;
+ const h=[[0,s]],push=x=>{h.push(x);let i=h.length-1;while(i>0){const p=(i-1)>>1;if(h[p][0]<=h[i][0])break;[h[p],h[i]]=[h[i],h[p]];i=p}};
+ const pop=()=>{const t=h[0],l=h.pop();if(h.length){h[0]=l;let i=0;for(;;){const a=2*i+1,b=a+1;let m=i;if(a<h.length&&h[a][0]<h[m][0])m=a;if(b<h.length&&h[b][0]<h[m][0])m=b;if(m===i)break;[h[m],h[i]]=[h[i],h[m]];i=m}}return t};
+ while(h.length){const[d,u]=pop();if(d>dist[u])continue;if(u===g)break;for(const[v,t]of A[u])if(d+t<dist[v]){dist[v]=d+t;prev[v]=u;push([d+t,v])}}
+ return{dist,prev}}
+const camino=(prev,o)=>{const p=[];for(let u=o;u!==-1;u=prev[u])p.push(u);return p};
+/* Árbol inverso: un Dijkstra desde el centro sobre las aristas invertidas. dist[o] = tiempo óptimo o -> centro. */
+const arbol=g=>dijkstra(g.radj,g.n,g.GR.centroIdx,-1);
+function tramo(g,a,b){const r=dijkstra(g.adj,g.n,a,b);return r.dist[b]===Infinity?null:{path:camino(r.prev,b).reverse(),t:r.dist[b]}}
+/* Cola obligada vía1 -> vía2 -> ... -> centro (se recalcula solo al cambiar las vías). null sin vías; undefined si no enlaza. */
+function cola(g,ar,vias){if(!vias.length)return null;let path=[vias[0]],t=0;
+ for(let i=0;i+1<vias.length;i++){const r=tramo(g,vias[i],vias[i+1]);if(!r)return undefined;path=path.concat(r.path.slice(1));t+=r.t}
+ const u=vias[vias.length-1];if(ar.dist[u]===Infinity)return undefined;
+ return{path:path.concat(camino(ar.prev,u).slice(1)),t:t+ar.dist[u]}}
+/* Ruta de o al centro pasando por `vias`; `c` es la cola ya calculada (opcional). null si no hay. */
+function ruta(g,ar,o,vias,c){if(!vias.length){return ar.dist[o]===Infinity?null:{path:camino(ar.prev,o),t:ar.dist[o]}}
+ if(c===undefined)c=cola(g,ar,vias);if(!c)return null;
+ const r=tramo(g,o,vias[0]);return r?{path:r.path.concat(c.path.slice(1)),t:r.t+c.t}:null}
+const factor=(t,opt)=>Math.round(t/opt*100)/100;
+const celda=v=>{v=String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+/* CSV de pares origen-destino con el formato de trayectos.csv (+ nombre, factor, vias, tiempo_ruta_s). */
+function csv(rutas){const f=['corredor,nombre,lat,lon,distancia_km,tiempo_seco_s,edges,factor,vias,tiempo_ruta_s'];
+ rutas.forEach(r=>f.push(['Añadidas',r.nombre,r.pts[0][1],r.pts[0][0],r.km,r.opt,0,factor(r.t,r.opt),r.vias,r.t].map(celda).join(',')));
+ return f.join('\n')+'\n'}
+return{crear,dijkstra,arbol,cola,ruta,factor,csv}})();
+</script>
 <script>
 const D=JSON.parse(document.getElementById('datos').textContent);
 const COLS=['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b','#e377c2','#17becf','#bcbd22','#7f7f7f'];
-const corrs=[...new Set(D.rutas.map(r=>r.corredor))];
-const col=c=>COLS[corrs.indexOf(c)%COLS.length];
+const ANADIDAS='Añadidas';let corrs;
+const col=c=>c===ANADIDAS?'#e6007e':COLS[corrs.indexOf(c)%COLS.length];
 const k=Math.cos(D.centro[1]*Math.PI/180);const P=([x,y])=>[x*k,-y];
 let view={cx:0,cy:0,s:1},sel=null,arrastre=null,movido=false;
 const cv=document.getElementById('cv'),ctx=cv.getContext('2d'),princ=document.getElementById('principal');
@@ -34,6 +67,7 @@ const T=p=>{const q=P(p);return[(q[0]-view.cx)*view.s+W()/2,(q[1]-view.cy)*view.
 function kmHasta(pts){const R=6371,rad=Math.PI/180,[x0,y0]=D.centro,[x1,y1]=pts[0];
  return Math.hypot((x1-x0)*rad*Math.cos(y0*rad),(y1-y0)*rad)*R}
 D.rutas.forEach(r=>{r.km=Math.round(kmHasta(r.pts)*100)/100});
+const base=D.rutas.length;corrs=[...new Set(D.rutas.map(r=>r.corredor))];
 function dibujar(){
  cv.width=W()*devicePixelRatio;cv.height=H()*devicePixelRatio;ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
  ctx.strokeStyle='#ddd';ctx.lineWidth=.6;ctx.beginPath();
@@ -44,15 +78,17 @@ function dibujar(){
  const c=T(D.centro);ctx.fillStyle='red';ctx.beginPath();ctx.arc(...c,8,0,7);ctx.fill();
  if(window.dibujarExtra)window.dibujarExtra(ctx,T);
  const r=D.rutas[sel];
- document.getElementById('info').textContent=sel!=null?`${r.corredor}: ${r.km} km, ${r.t} s en seco (nodo ${r.origen})`:`${D.rutas.length} trayectos · ${corrs.length} corredores · destino Puerta Real`;
+ document.getElementById('info').textContent=sel!=null?`${r.nombre||r.corredor}: ${r.km} km, ${r.t} s en seco (nodo ${r.origen})${r.opt&&r.t>r.opt*1.01?` · ×${Logica.factor(r.t,r.opt).toFixed(2)} sobre la óptima`:''}`:`${base} trayectos${D.rutas.length>base?` + ${D.rutas.length-base} añadidas`:''} · ${corrs.length} corredores · destino Puerta Real`;
  document.querySelectorAll('.tr').forEach(e=>e.classList.toggle('on',+e.dataset.i===sel))}
 const leyenda=document.getElementById('leyenda');
-corrs.forEach(c=>{let h=`<div class="corr"><span class="sw" style="background:${col(c)}"></span>${c}</div>`;
- D.rutas.forEach((r,i)=>{if(r.corredor===c)h+=`<div class="tr" data-i="${i}">${r.km} km · ${r.t} s</div>`});leyenda.insertAdjacentHTML('beforeend',h)});
+function construirLeyenda(){leyenda.innerHTML='';corrs=[...new Set(D.rutas.map(r=>r.corredor))];
+ corrs.forEach(c=>{let h=`<div class="corr"><span class="sw" style="background:${col(c)}"></span>${c}</div>`;
+  D.rutas.forEach((r,i)=>{if(r.corredor===c)h+=`<div class="tr" data-i="${i}">${r.nombre?r.nombre+' · ':''}${r.km} km · ${r.t} s${r.opt&&r.t>r.opt*1.01?' · ×'+Logica.factor(r.t,r.opt).toFixed(2):''}</div>`});leyenda.insertAdjacentHTML('beforeend',h)})}
+construirLeyenda();
 function enfocar(i){sel=i;ajustar(i==null?D.rutas.flatMap(r=>r.pts):D.rutas[i].pts);dibujar()}
 leyenda.onclick=e=>{const t=e.target.closest('.tr');if(t)enfocar(+t.dataset.i)};
 document.getElementById('todo').onclick=()=>enfocar(null);
-cv.onclick=e=>{if(movido)return;const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;let mejor=null,bd=12;
+cv.onclick=e=>{if(movido)return;if(modoAdd)return clicAdd(e.clientX,e.clientY,e.shiftKey);const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;let mejor=null,bd=12;
  D.rutas.forEach((q,i)=>{for(const p of q.pts){const t=T(p),d=Math.hypot(t[0]-x,t[1]-y);if(d<bd){bd=d;mejor=i}}});if(mejor!=null)enfocar(mejor)};
 princ.onmousedown=e=>{arrastre=[e.clientX,e.clientY];movido=false};
 window.onmouseup=()=>arrastre=null;
@@ -60,5 +96,38 @@ window.onmousemove=e=>{if(!arrastre)return;const dx=e.clientX-arrastre[0],dy=e.c
  view.cx-=dx/view.s;view.cy-=dy/view.s;arrastre=[e.clientX,e.clientY];dibujar()};
 princ.onwheel=e=>{e.preventDefault();const f=e.deltaY<0?1.2:1/1.2,r=princ.getBoundingClientRect(),mx=e.clientX-r.left-W()/2,my=e.clientY-r.top-H()/2;
  view.cx+=mx/view.s*(1-1/f);view.cy+=my/view.s*(1-1/f);view.s*=f;dibujar()};
-onresize=dibujar;enfocar(null);
+
+// --- «＋ Ruta» con vista previa (variante elegida en el prototipo 08) ---
+const G=Logica.crear(D.grafo),ARBOL=Logica.arbol(G);
+let modoAdd=false,vias=[],cola=null,fantasma=null,nAdd=0,raf=0;
+const $=id=>document.getElementById(id);
+function masCercano(px,py){let b=-1,bd=1e18;D.grafo.n.forEach((p,i)=>{const q=T(p),d=(q[0]-px)**2+(q[1]-py)**2;if(d<bd){bd=d;b=i}});return b}
+function construir(o){return Logica.ruta(G,ARBOL,o,vias,cola)}
+function recalcularCola(){cola=Logica.cola(G,ARBOL,vias);if(cola===undefined){vias.pop();cola=Logica.cola(G,ARBOL,vias);alert('Esa vía no se puede enlazar con la ruta')}}
+function panel(){const a=$('ayuda');a.style.display=modoAdd?'block':'none';
+ a.innerHTML=`<b>＋ Ruta (vista previa)</b><br>Clic: confirmar y poner nombre<br>Mayús+clic: añadir vía (desvío)<br>Esc: quitar vías<br>vías: ${vias.length} · añadidas: ${nAdd}`;
+ $('clrv').style.display=modoAdd?'':'none';$('add').classList.toggle('on',modoAdd);$('exp').disabled=!nAdd;cv.style.cursor=modoAdd?'crosshair':''}
+function limpiarVias(){vias=[];cola=null;fantasma=null}
+function clicAdd(x,y,mayus){const r=cv.getBoundingClientRect(),o=masCercano(x-r.left,y-r.top);
+ if(mayus){vias.push(o);recalcularCola();fantasma=null;panel();dibujar();return}
+ const res=construir(o);if(!res){alert('Sin ruta desde ese nodo');return}
+ const nombre=prompt('Nombre de la ruta:','Ruta '+(nAdd+1));if(nombre===null)return;
+ const pts=res.path.map(i=>D.grafo.n[i]);nAdd++;
+ D.rutas.push({corredor:ANADIDAS,nombre:nombre.trim()||'Ruta '+nAdd,origen:D.grafo.id[o],km:Math.round(kmHasta(pts)*100)/100,t:Math.round(res.t),opt:Math.round(ARBOL.dist[o]*10)/10,vias:vias.length,pts});
+ limpiarVias();construirLeyenda();panel();enfocar(D.rutas.length-1)}
+function hover(x,y){if(!modoAdd||arrastre||raf)return;raf=requestAnimationFrame(()=>{raf=0;const r=cv.getBoundingClientRect(),o=masCercano(x-r.left,y-r.top),res=construir(o);
+ fantasma=res&&{path:res.path,t:res.t,opt:ARBOL.dist[o]};dibujar()})}
+window.addEventListener('mousemove',e=>hover(e.clientX,e.clientY));
+window.dibujarExtra=(ctx,T)=>{
+ if(fantasma){ctx.strokeStyle='#e6007e';ctx.setLineDash([6,4]);ctx.lineWidth=3;ctx.beginPath();fantasma.path.forEach((n,j)=>{const q=T(D.grafo.n[n]);j?ctx.lineTo(...q):ctx.moveTo(...q)});ctx.stroke();ctx.setLineDash([]);
+  const o=T(D.grafo.n[fantasma.path[0]]),f=Logica.factor(fantasma.t,fantasma.opt);ctx.fillStyle='#e6007e';ctx.font='bold 13px sans-serif';
+  ctx.fillText(Math.round(fantasma.t)+' s en seco'+(f>1.01?` (×${f.toFixed(2)} sobre la óptima)`:' (óptima)'),o[0]+8,o[1]-8)}
+ vias.forEach((b,i)=>{const q=T(D.grafo.n[b]);ctx.fillStyle='#e6007e';ctx.fillRect(q[0]-6,q[1]-6,12,12);ctx.fillStyle='#fff';ctx.font='bold 10px sans-serif';ctx.fillText(i+1,q[0]-3,q[1]+4)})};
+$('add').onclick=()=>{modoAdd=!modoAdd;limpiarVias();panel();dibujar()};
+$('clrv').onclick=()=>{limpiarVias();dibujar()};
+addEventListener('keydown',e=>{if(e.key==='Escape'){limpiarVias();panel();dibujar()}});
+$('exp').onclick=()=>{const a=document.createElement('a');
+ a.href=URL.createObjectURL(new Blob([Logica.csv(D.rutas.slice(base))],{type:'text/csv;charset=utf-8'}));a.download='rutas_anadidas.csv';
+ document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+onresize=dibujar;panel();enfocar(null);
 </script></body></html>
