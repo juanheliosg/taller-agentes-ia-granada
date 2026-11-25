@@ -1,0 +1,883 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Agentes de IA para la investigación</title>
+    <link rel="stylesheet" href="vendor/reveal.js/dist/reset.css">
+    <link rel="stylesheet" href="vendor/reveal.js/dist/reveal.css">
+    <link rel="stylesheet" href="tema.css">
+</head>
+
+<body>
+    <div class="reveal">
+        <div class="slides">
+
+            <!-- =====================================================================
+     CÓMO EDITAR
+     - Casi todas las diapositivas son Markdown dentro de <textarea data-template>.
+     - Las notas del ponente van después de una línea que empieza por "Note:".
+     - Para animar un elemento: añade al final de la línea  <!- - .element: class="fragment" - -> (sin los espacios entre guiones)
+     - Las diapositivas 3, 4, 5, 6, 7, 8 y 20 son HTML/SVG: busca "EDITA AQUÍ".
+     ===================================================================== -->
+
+            <!-- ============ PORTADA ============ -->
+            <section data-markdown data-separator-notes="^Note:" class="portada titulo">
+                <textarea data-template>
+# Uso de Agentes de IA para la programación aplicada a tareas de investigación
+
+Juan Helios García Guzmán · 26 de noviembre de 2026
+</textarea>
+            </section>
+
+            <!-- ============ 2. ÍNDICE ============ -->
+            <section data-markdown data-separator-notes="^Note:" class="indice">
+                <textarea data-template>
+## Índice
+
+**Parte I. Exposición** <span class="suave">(25 min)</span>
+
+1. LLMs y contexto
+2. Herramientas y agentes
+3. Ponerlo en marcha
+
+**Parte II. Taller** <span class="suave">(60 min)</span>
+
+4. Demo: ¿por qué se colapsa Granada cuando llueve?
+5. Impacto social
+</textarea>
+            </section>
+
+            <!-- ============ 3. QUÉ ES UN LLM (HTML) ============ -->
+            <section>
+                <h2>Qué es un LLM</h2>
+
+                <!-- Paso 1: entrada → LLM → probabilidades del siguiente token -->
+                <div class="llm-paso1">
+                    <div class="tokens">
+                        <!-- EDITA AQUÍ: tokens de la frase de entrada -->
+                        <span class="tok">El</span><span class="tok">gato</span><span class="tok">se</span><span
+                            class="tok">sentó</span><span class="tok">en</span><span class="tok">el</span>
+                    </div>
+                    <div class="flecha">→</div>
+                    <div class="caja-llm">LLM</div>
+                    <div class="flecha">→</div>
+                    <div class="barras fragment" data-fragment-index="1">
+                        <!-- EDITA AQUÍ: candidatos y probabilidades. width = probabilidad × 2 -->
+                        <span class="etq fragment custom elegir-txt" data-fragment-index="2">sofá</span>
+                        <div class="pista">
+                            <div class="barra max fragment custom elegir" data-fragment-index="2" style="width:76%">
+                            </div>
+                        </div><span class="val">0,38</span>
+                        <span class="etq">suelo</span>
+                        <div class="pista">
+                            <div class="barra" style="width:42%"></div>
+                        </div><span class="val">0,21</span>
+                        <span class="etq">tejado</span>
+                        <div class="pista">
+                            <div class="barra" style="width:24%"></div>
+                        </div><span class="val">0,12</span>
+                        <span class="etq">sillón</span>
+                        <div class="pista">
+                            <div class="barra" style="width:18%"></div>
+                        </div><span class="val">0,09</span>
+                        <span class="etq suave">…</span>
+                        <div class="pista"></div><span class="val"></span>
+                    </div>
+                </div>
+
+                <!-- Pasos siguientes: el token elegido se añade al final y se repite -->
+                <div class="llm-repite">
+                    <!-- EDITA AQUÍ: una fila por paso -->
+                    <div class="fila fragment" data-fragment-index="3">
+                        <span class="tok">El</span><span class="tok">gato</span><span class="tok">se</span><span
+                            class="tok">sentó</span><span class="tok">en</span><span class="tok">el</span><span
+                            class="tok nuevo">sofá</span>
+                        <span class="flecha">→</span><span class="caja-llm mini">LLM</span><span
+                            class="flecha">→</span><strong>y</strong>
+                    </div>
+                    <div class="fila fragment" data-fragment-index="4">
+                        <span class="tok">El</span><span class="tok">gato</span><span class="tok">se</span><span
+                            class="tok">sentó</span><span class="tok">en</span><span class="tok">el</span><span
+                            class="tok">sofá</span><span class="tok nuevo">y</span>
+                        <span class="flecha">→</span><span class="caja-llm mini">LLM</span><span
+                            class="flecha">→</span><strong>se</strong>
+                    </div>
+                    <div class="fila fragment" data-fragment-index="5">
+                        <span class="tok">El</span><span class="tok">gato</span><span class="tok">se</span><span
+                            class="tok">sentó</span><span class="tok">en</span><span class="tok">el</span><span
+                            class="tok">sofá</span><span class="tok">y</span><span class="tok nuevo">se</span>
+                        <span class="flecha">→</span><span class="caja-llm mini">LLM</span><span
+                            class="flecha">→</span><strong>durmió</strong>
+                    </div>
+                </div>
+
+                <!-- EDITA AQUÍ: frase sobre el entrenamiento -->
+                <p class="entrena fragment" data-fragment-index="6"><strong>Entrenamiento:</strong> billones de textos;
+                    el objetivo es predecir la siguiente palabra; el error ajusta los pesos.</p>
+
+            </section>
+
+            <!-- ============ 4. EL CONTEXTO DECIDE LA PALABRA (HTML) ============ -->
+            <section>
+                <h2>El contexto decide la palabra</h2>
+                <!-- EDITA AQUÍ: final común a los dos contextos -->
+                <p class="final-comun">«… la red se colapsó por el exceso de ___»</p>
+
+                <div class="dos-contextos">
+                    <div class="fragment">
+                        <!-- EDITA AQUÍ: contexto A y sus probabilidades (width = probabilidad / 0,55) -->
+                        <p class="contexto"><b>Contexto A.</b> «A las ocho llovía sobre Granada y nadie llegaba a
+                            tiempo…»</p>
+                        <div class="barras">
+                            <span class="etq">coches</span>
+                            <div class="pista">
+                                <div class="barra max" style="width:95%"></div>
+                            </div><span class="val">0,52</span>
+                            <span class="etq">tráfico</span>
+                            <div class="pista">
+                                <div class="barra" style="width:44%"></div>
+                            </div><span class="val">0,24</span>
+                            <span class="etq">lluvia</span>
+                            <div class="pista">
+                                <div class="barra" style="width:16%"></div>
+                            </div><span class="val">0,09</span>
+                            <span class="etq">agua</span>
+                            <div class="pista">
+                                <div class="barra" style="width:9%"></div>
+                            </div><span class="val">0,05</span>
+                            <span class="etq">peticiones</span>
+                            <div class="pista">
+                                <div class="barra" style="width:2%"></div>
+                            </div><span class="val">0,01</span>
+                        </div>
+                    </div>
+                    <div class="fragment">
+                        <!-- EDITA AQUÍ: contexto B y sus probabilidades -->
+                        <p class="contexto"><b>Contexto B.</b> «El servidor de la universidad dejó de responder en plena
+                            matrícula…»</p>
+                        <div class="barras">
+                            <span class="etq">peticiones</span>
+                            <div class="pista">
+                                <div class="barra max" style="width:84%"></div>
+                            </div><span class="val">0,46</span>
+                            <span class="etq">tráfico</span>
+                            <div class="pista">
+                                <div class="barra" style="width:56%"></div>
+                            </div><span class="val">0,31</span>
+                            <span class="etq">conexiones</span>
+                            <div class="pista">
+                                <div class="barra" style="width:22%"></div>
+                            </div><span class="val">0,12</span>
+                            <span class="etq">usuarios</span>
+                            <div class="pista">
+                                <div class="barra" style="width:11%"></div>
+                            </div><span class="val">0,06</span>
+                            <span class="etq">coches</span>
+                            <div class="pista">
+                                <div class="barra" style="width:2%"></div>
+                            </div><span class="val">0,01</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- EDITA AQUÍ: mensaje final -->
+                <div class="fragment">
+                    <p class="mensaje">La palabra más probable depende de <em>todo</em> el contexto. Y el contexto
+                        es lo que más controlamos.</p>
+                    <p class="memoria">El contexto es la única memoria del modelo: si el contexto empieza de cero, el
+                        agente empieza de cero.</p>
+                </div>
+
+            </section>
+
+            <!-- ============ 5. LA ZONA ESTÚPIDA (HTML + SVG) ============ -->
+            <section>
+                <h2>La «zona estúpida»</h2>
+                <div class="dos-col">
+                    <svg class="diagrama" viewBox="0 0 560 400" width="560" height="400" role="img"
+                        aria-label="Calidad de la respuesta frente a longitud del contexto">
+                        <!-- zona sombreada -->
+                        <rect x="320" y="20" width="230" height="320" style="fill:var(--acento-2-claro)" />
+                        <!-- EDITA AQUÍ: etiqueta de la zona -->
+                        <text x="435" y="55" text-anchor="middle" class="teja" font-size="24" font-weight="600">zona
+                            estúpida</text>
+                        <!-- ejes -->
+                        <line x1="60" y1="340" x2="550" y2="340" stroke="#1c1c1c" stroke-width="2" />
+                        <line x1="60" y1="340" x2="60" y2="20" stroke="#1c1c1c" stroke-width="2" />
+                        <!-- curva -->
+                        <path d="M60,80 C180,78 240,88 290,120 S420,270 550,300" fill="none" stroke="#1f5f8b"
+                            stroke-width="4" />
+                        <!-- EDITA AQUÍ: etiquetas de los ejes -->
+                        <text x="305" y="378" text-anchor="middle" font-size="22">longitud del contexto (tokens)</text>
+                        <text x="30" y="180" text-anchor="middle" font-size="22" transform="rotate(-90 30 180)">calidad
+                            de la respuesta</text>
+                        <text x="60" y="400" font-size="18" class="suave">poco</text>
+                        <text x="550" y="400" font-size="18" text-anchor="end" class="suave">mucho</text>
+                    </svg>
+                    <ul>
+                        <!-- EDITA AQUÍ: explicación -->
+                        <li class="fragment">La atención es un presupuesto finito que se reparte entre todos los tokens
+                        </li>
+                        <li class="fragment">Con mucho contexto irrelevante, se diluye</li>
+                        <li class="fragment">Lo que queda en medio se pierde (<em>lost in the middle</em>)</li>
+                        <li class="fragment">Y cuesta: el cálculo de la atención crece con el cuadrado de la longitud
+                        </li>
+                    </ul>
+                </div>
+                <p class="pie">Liu et al., «Lost in the Middle: How Language Models Use Long Contexts», <em>TACL</em>,
+                    2024 · Hong, Troynikov y Huber, «Context Rot», Chroma, 2025 · «Dumb zone»: Dex Horthy (HumanLayer).
+                </p>
+
+            </section>
+
+            <!-- ============ 6. BUSCANDO UNA SOLUCIÓN TOKEN A TOKEN (HTML + SVG) ============ -->
+            <section>
+                <h2>Buscando una solución token a token</h2>
+                <svg class="diagrama" viewBox="0 0 1180 380" width="1180" height="380" role="img"
+                    aria-label="Camino de tokens hacia la solución, con un desvío que se corrige">
+                    <defs>
+                        <marker id="punta6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+                            orient="auto">
+                            <path d="M0,0 L10,5 L0,10 z" fill="#17324d" />
+                        </marker>
+                        <marker id="punta6v" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6"
+                            orient="auto">
+                            <path d="M0,0 L10,5 L0,10 z" fill="#3d7a4a" />
+                        </marker>
+                    </defs>
+                    <!-- inicio -->
+                    <circle cx="50" cy="190" r="12" fill="#17324d" />
+                    <!-- EDITA AQUÍ: etiquetas -->
+                    <text x="50" y="235" text-anchor="middle" font-size="22" class="suave">inicio</text>
+                    <!-- objetivo -->
+                    <rect x="960" y="155" width="210" height="70" fill="#d5e4f0" stroke="#17324d" stroke-width="2" />
+                    <text x="1065" y="198" text-anchor="middle" font-size="24" font-weight="600">tarea resuelta</text>
+
+                    <!-- tokens útiles -->
+                    <g class="fragment">
+                        <polyline points="50,190 190,190 330,180 470,190 610,185 750,190 958,190" fill="none"
+                            stroke="#1f5f8b" stroke-width="4" marker-end="url(#punta6)" />
+                        <g fill="#1f5f8b">
+                            <circle cx="190" cy="190" r="9" />
+                            <circle cx="330" cy="180" r="9" />
+                            <circle cx="470" cy="190" r="9" />
+                            <circle cx="610" cy="185" r="9" />
+                            <circle cx="750" cy="190" r="9" />
+                        </g>
+                        <text x="560" y="160" text-anchor="middle" font-size="24" class="acento">útiles: acercan a la
+                            solución</text>
+                    </g>
+                    <!-- ruido -->
+                    <g class="fragment">
+                        <polyline points="330,180 420,110 520,65 640,35" fill="none" stroke="#8e959e"
+                            stroke-width="3" />
+                        <g fill="#8e959e">
+                            <circle cx="420" cy="110" r="8" />
+                            <circle cx="520" cy="65" r="8" />
+                            <circle cx="640" cy="35" r="8" />
+                        </g>
+                        <text x="665" y="43" font-size="24" class="suave">ruido: aleja, pero se nota</text>
+                    </g>
+                    <!-- desvío sin verificar -->
+                    <g class="fragment">
+                        <polyline points="470,190 570,240 670,285 770,325" fill="none" stroke="#b8542a" stroke-width="3"
+                            stroke-dasharray="9 7" />
+                        <g fill="#ffffff" stroke="#b8542a" stroke-width="2">
+                            <circle cx="570" cy="240" r="8" />
+                            <circle cx="670" cy="285" r="8" />
+                        </g>
+                        <text x="770" y="335" text-anchor="middle" font-size="34" font-weight="700"
+                            class="teja">✗</text>
+                        <text x="540" y="318" text-anchor="end" font-size="24" class="teja">desvío: «ya está
+                            arreglado»</text>
+                        <text x="540" y="346" text-anchor="end" font-size="24" class="teja">y nadie lo comprueba</text>
+                    </g>
+                    <!-- corrección -->
+                    <g class="fragment">
+                        <path d="M790,312 C840,280 830,230 762,202" fill="none" stroke="#3d7a4a" stroke-width="4"
+                            marker-end="url(#punta6v)" />
+                        <text x="840" y="300" font-size="24" font-weight="600" class="verde">corrección:</text>
+                        <text x="840" y="328" font-size="24" class="verde">un test que falla o</text>
+                        <text x="840" y="356" font-size="24" class="verde">un humano que dice «así no»</text>
+                    </g>
+                </svg>
+                <!-- EDITA AQUÍ: mensaje final -->
+                <p class="fragment" style="margin-top:30px">Sin verificación, el desvío se queda en el contexto y
+                    condiciona todos los tokens siguientes. Con una señal externa, el agente vuelve al camino.</p>
+
+            </section>
+
+            <!-- ============ 7. AGENTE = LLM + ARNÉS + HERRAMIENTAS (HTML + SVG) ============ -->
+            <section>
+                <h2>Agente = LLM + arnés + herramientas</h2>
+                <svg class="diagrama" viewBox="0 0 1100 330" width="1100" height="300" role="img"
+                    aria-label="Bucle de un agente" style="margin:0 auto">
+                    <defs>
+                        <marker id="punta7" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+                            orient="auto">
+                            <path d="M0,0 L10,5 L0,10 z" fill="#5a5f66" />
+                        </marker>
+                    </defs>
+                    <g stroke-width="2">
+                        <rect x="30" y="125" width="230" height="80" stroke="#17324d" fill="#eef0f2" />
+                        <rect x="435" y="10" width="230" height="80" stroke="#1f5f8b" stroke-width="3" fill="#d5e4f0" />
+                        <rect x="840" y="125" width="230" height="80" stroke="#b8542a" stroke-width="3"
+                            fill="#f3dfd5" />
+                        <rect x="435" y="240" width="230" height="80" stroke="#3d7a4a" stroke-width="3"
+                            fill="#dcebdf" />
+                    </g>
+                    <!-- EDITA AQUÍ: nombres de las cajas -->
+                    <text x="145" y="174" text-anchor="middle" font-size="26" font-weight="600">Contexto</text>
+                    <text x="550" y="60" text-anchor="middle" font-size="26" font-weight="600" class="acento">LLM</text>
+                    <text x="955" y="160" text-anchor="middle" font-size="26" font-weight="600"
+                        class="teja">Arnés</text>
+                    <text x="955" y="190" text-anchor="middle" font-size="22" class="suave"
+                        font-style="italic">(harness)</text>
+                    <text x="550" y="289" text-anchor="middle" font-size="26" font-weight="600"
+                        class="verde">Herramientas</text>
+                    <!-- flechas del bucle -->
+                    <g fill="none" stroke="#5a5f66" stroke-width="2" marker-end="url(#punta7)">
+                        <path d="M200,123 C230,70 330,50 430,50" />
+                        <path d="M668,50 C780,50 900,70 940,122" />
+                        <path d="M940,208 C900,265 780,280 668,280" />
+                        <path d="M432,280 C330,280 230,265 200,208" />
+                    </g>
+                    <!-- EDITA AQUÍ: etiquetas de las flechas -->
+                    <text x="270" y="48" text-anchor="middle" font-size="22" class="suave">lo lee todo</text>
+                    <text x="830" y="48" text-anchor="middle" font-size="22" class="suave">propone una acción</text>
+                    <text x="830" y="318" text-anchor="middle" font-size="22" class="suave">la ejecuta</text>
+                    <text x="270" y="318" text-anchor="middle" font-size="22" class="suave">el resultado se añade</text>
+                </svg>
+                <!-- EDITA AQUÍ: definiciones de arnés y herramienta -->
+                <div class="definiciones">
+                    <p class="fragment"><strong class="teja">Arnés:</strong> el programa que envuelve al LLM (Claude
+                        Code, Codex, OpenCode). Ejecuta las acciones que propone, le devuelve el resultado, decide qué
+                        entra en el contexto y pide permiso antes de lo peligroso.</p>
+                    <p class="fragment"><strong class="verde">Herramienta:</strong> cualquier cosa que se pueda hacer
+                        desde una terminal. Git, buscar en internet, ejecutar un programa, editar ficheros, leer PDFs…
+                    </p>
+                </div>
+
+            </section>
+            <!-- ============ 8. EJEMPLO DE LLAMADA A UNA HERRAMIENTA (HTML) ============ -->
+            <section>
+                <h2>Ejemplo de llamada a una herramienta</h2>
+                <div class="transcripcion">
+                    <!-- EDITA AQUÍ: cada par (quién, qué) es un paso -->
+                    <span class="quien">Usuario</span>
+                    <span>¿Qué ficheros de medidas tienen valores perdidos?</span>
+
+                    <span class="quien llm fragment" data-fragment-index="1">LLM<small>escribe texto</small></span>
+                    <pre class="fragment"
+                        data-fragment-index="1"><code class="nohighlight">{"herramienta": "bash", "orden": "ls datos/"}</code></pre>
+
+                    <span class="quien arnes fragment" data-fragment-index="2">Arnés<small>ejecuta</small></span>
+                    <div class="paso-arnes fragment" data-fragment-index="2"><span>Reconoce la llamada, ejecuta
+                            <code>ls datos/</code> en tu máquina y
+                            devuelve la salida al contexto:</span>
+                        <pre
+                            class="salida"><code class="nohighlight">sujeto01.csv  sujeto02.csv  sujeto03.csv  notas.txt</code></pre>
+                    </div>
+
+                    <span class="quien llm fragment" data-fragment-index="3">LLM<small>escribe texto</small></span>
+                    <pre class="fragment" data-fragment-index="3"><code class="nohighlight">{"herramienta": "python",
+ "código": "for f in glob('datos/*.csv'): print(f, read_csv(f).isna().sum().sum())"}</code></pre>
+
+                    <span class="quien arnes fragment" data-fragment-index="4">Arnés<small>ejecuta</small></span>
+                    <div class="paso-arnes fragment" data-fragment-index="4"><span>Lanza Python y devuelve la
+                            salida:</span>
+                        <pre
+                            class="salida"><code class="nohighlight">datos/sujeto01.csv 0   datos/sujeto02.csv 14   datos/sujeto03.csv 0</code></pre>
+                    </div>
+
+                    <span class="quien llm fragment" data-fragment-index="5">LLM<small>escribe texto</small></span>
+                    <span class="fragment" data-fragment-index="5">Solo <code>sujeto02.csv</code>: 14 valores perdidos.
+                        ¿Miro en qué columnas están?</span>
+                </div>
+                <!-- EDITA AQUÍ: frase de cierre -->
+                <p class="cierre fragment" data-fragment-index="6">El LLM solo escribe texto. El arnés envuelve al LLM:
+                    reconoce las llamadas en ese
+                    texto, las ejecuta de verdad y le devuelve el resultado.</p>
+
+            </section>
+
+            <!-- ============ 9. TAREAS VERIFICABLES (HTML + SVG) ============ -->
+            <section>
+                <h2>Tareas verificables</h2>
+                <div class="dos-col verificables">
+                    <svg class="diagrama" viewBox="0 0 660 420" width="600" height="382" style="width:600px;height:auto"
+                        role="img"
+                        aria-label="Bucle de retroalimentación: propone, ejecuta los tests, lee el error, corrige">
+                        <defs>
+                            <marker id="punta9" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+                                orient="auto">
+                                <path d="M0,0 L10,5 L0,10 z" fill="#5a5f66" />
+                            </marker>
+                            <marker id="punta9v" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+                                orient="auto">
+                                <path d="M0,0 L10,5 L0,10 z" fill="#3d7a4a" />
+                            </marker>
+                        </defs>
+                        <!-- EDITA AQUÍ: texto del centro y de cada caja -->
+                        <text x="260" y="203" text-anchor="middle" font-size="22" class="suave">bucle de</text>
+                        <text x="260" y="231" text-anchor="middle" font-size="22" class="suave">retroalimentación</text>
+                        <!-- 1. propone -->
+                        <g>
+                            <rect x="155" y="16" width="210" height="58" fill="#d5e4f0" stroke="#1f5f8b"
+                                stroke-width="2" />
+                            <text x="260" y="53" text-anchor="middle" font-size="24" font-weight="600"
+                                class="acento">propone código</text>
+                        </g>
+                        <!-- 2. ejecuta -->
+                        <g class="fragment" data-fragment-index="1">
+                            <path d="M367,45 Q445,50 445,176" fill="none" stroke="#5a5f66" stroke-width="2"
+                                marker-end="url(#punta9)" />
+                            <rect x="370" y="181" width="150" height="58" fill="#eef0f2" stroke="#17324d"
+                                stroke-width="2" />
+                            <text x="445" y="217" text-anchor="middle" font-size="22" font-weight="600">ejecuta
+                                tests</text>
+                        </g>
+                        <!-- 3. falla -->
+                        <g class="fragment" data-fragment-index="2">
+                            <path d="M445,242 Q445,370 369,375" fill="none" stroke="#5a5f66" stroke-width="2"
+                                marker-end="url(#punta9)" />
+                            <rect x="155" y="346" width="210" height="58" fill="#f3dfd5" stroke="#b8542a"
+                                stroke-width="2" />
+                            <text x="260" y="383" text-anchor="middle" font-size="24" font-weight="600" class="teja">✗
+                                lee el error</text>
+                        </g>
+                        <!-- 4. corrige -->
+                        <g class="fragment" data-fragment-index="3">
+                            <path d="M153,375 Q75,370 75,244" fill="none" stroke="#5a5f66" stroke-width="2"
+                                marker-end="url(#punta9)" />
+                            <rect x="0" y="181" width="150" height="58" fill="#eef0f2" stroke="#17324d"
+                                stroke-width="2" />
+                            <text x="75" y="217" text-anchor="middle" font-size="22" font-weight="600">corrige</text>
+                            <path d="M75,178 Q75,50 151,45" fill="none" stroke="#5a5f66" stroke-width="2"
+                                marker-end="url(#punta9)" />
+                        </g>
+                        <!-- 5. salida: los tests pasan -->
+                        <g class="fragment" data-fragment-index="4">
+                            <path d="M522,200 Q575,190 595,128" fill="none" stroke="#3d7a4a" stroke-width="3"
+                                marker-end="url(#punta9v)" />
+                            <text x="655" y="105" text-anchor="end" font-size="24" font-weight="600" class="verde">✓
+                                pasan: listo</text>
+                        </g>
+                    </svg>
+                    <div>
+                        <!-- EDITA AQUÍ: explicación -->
+                        <p>Si el resultado se puede comprobar (tests, compilador, parámetros conocidos), el agente
+                            itera hasta converger.</p>
+                        <p>El entrenamiento es el mismo: ajustar los pesos para que ciertos textos sean más
+                            probables. Lo que cambia es <strong>qué textos</strong> se refuerzan:</p>
+                        <ul>
+                            <li><strong>RLHF</strong>: los que prefieren las personas. Aprendió a agradar.</li>
+                            <li><strong>RLVR</strong> (<em>Reinforcement Learning with Verifiable Rewards</em>): los
+                                que resuelven problemas comprobables. Aprendió a acertar.</li>
+                        </ul>
+                        <p class="suave">Es lo que ha disparado los agentes de código desde 2024–25.</p>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- ============ 10. LÍNEAS DE INVESTIGACIÓN ============ -->
+            <section data-markdown data-separator-notes="^Note:" class="cuadricula">
+                <textarea data-template>
+## Agentes en distintas líneas de investigación
+
+- **Diseño de chips**<br>Iterar Verilog/VHDL hasta pasar el *testbench* (banco de pruebas) y la síntesis<br><span class="juez">Se comprueba con: el testbench y la síntesis</span>
+- **Gestión de laboratorio**<br>Inventarios, reservas, protocolos, conversión de ficheros de instrumentos<br><span class="juez">Se comprueba con: el fichero convertido cuadra con el original</span>
+- **Señal y CAD**<br>Scripts de KiCad y FreeCAD en Python; diseño de filtros comprobando su respuesta en frecuencia<br><span class="juez">Se comprueba con: la respuesta en frecuencia medida</span>
+- **Análisis científico completo**<br>Física de partículas: lo vemos en la siguiente<br><span class="juez">Se comprueba con: reproducir un resultado publicado</span>
+</textarea>
+            </section>
+
+            <!-- ============ 11. CASO: FÍSICA DE PARTÍCULAS ============ -->
+            <section data-markdown data-separator-notes="^Note:" class="caso-lee">
+                <textarea data-template>
+## Caso: física de partículas con agentes
+
+<svg class="diagrama esquema-lee" viewBox="0 0 360 300" role="img" aria-label="Físico que dirige, agentes de análisis y agente revisor"><defs><marker id="punta11" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5a5f66"/></marker></defs><rect x="90" y="10" width="180" height="60" fill="none" stroke="#1f5f8b" stroke-width="3"/><text x="180" y="48" text-anchor="middle" font-size="22" font-weight="600" class="acento">Físico que dirige</text><rect x="10" y="200" width="150" height="80" fill="none" stroke="#1c1c1c" stroke-width="2"/><rect x="16" y="194" width="150" height="80" fill="#fff" stroke="#1c1c1c" stroke-width="2"/><text x="91" y="228" text-anchor="middle" font-size="21">Agentes</text><text x="91" y="254" text-anchor="middle" font-size="21">de análisis</text><rect x="200" y="200" width="150" height="80" fill="none" stroke="#1c1c1c" stroke-width="2"/><text x="275" y="234" text-anchor="middle" font-size="21">Agente</text><text x="275" y="260" text-anchor="middle" font-size="21">revisor</text><g fill="none" stroke="#5a5f66" stroke-width="2" marker-end="url(#punta11)"><path d="M140,72 L95,190"/><path d="M168,238 L196,238"/><path d="M265,198 L220,74"/></g></svg>
+
+- Reanálisis del *thrust* de ALEPH por un solo físico: cadena completa, nota de análisis y resultado compatible con ALEPH 2004 (arXiv:2603.05735)
+- Flujo de carga en e<sup>+</sup>e<sup>−</sup>: primer resultado con sistemáticos en 3 días
+- Fusión de tres ramas de un modelo que divergían desde hacía años: 2 semanas en vez de \~1 año (\~4000 millones de tokens)
+- Aceleraciones de más de 5–10×
+- Límites: no identificó un fondo con pico ni tomó la elección física correcta. «Physicist guidance was critical»
+
+> «Agents accelerate analysis; physicists own the science.»
+
+<p class="pie">Yen-Jie Lee (MIT), «AI-Agent-Powered Analyses in Particle Physics», CERN TH LLM Coffee, 8 de junio de 2026.</p>
+</textarea>
+            </section>
+
+            <!-- ============ 12. MODELOS Y ARNESES ============ -->
+            <section data-markdown data-separator-notes="^Note:">
+                <textarea data-template>
+## Modelos y arneses
+
+| Opción | Coste | Notas |
+|---|---|---|
+| Claude Pro | ~20 €/mes | Incluye Claude Code |
+| ChatGPT Plus | ~20 €/mes | Incluye Codex |
+| GitHub Copilot | Gratis con GitHub Education | Comprobad vuestra elegibilidad: las condiciones cambiaron en 2026. El plan de estudiantes tiene modelos limitados |
+| OpenRouter | Pago por uso | Un único acceso a muchos modelos, incluidos abiertos; independencia del proveedor |
+| **OpenCode + modelos gratuitos** | Gratis | **La opción del taller**: abierto, sin cuenta |
+
+<p class="regla">Asume que todo lo que envías sale de tu máquina: no metas datos personales, sensibles ni inéditos sin revisar las condiciones.</p>
+</textarea>
+            </section>
+
+            <!-- ============ 13a. QUÉ ES UNA SKILL (HTML) ============ -->
+            <section>
+                <h2>Qué es una skill</h2>
+                <div class="dos-col skill-def">
+                    <div>
+                        <!-- EDITA AQUÍ: explicación -->
+                        <p>Un fichero Markdown con instrucciones que el agente carga <strong>solo cuando la tarea lo
+                                pide</strong>. Una receta reutilizable.</p>
+                        <ul class="fragment" data-fragment-index="2">
+                            <li>La <strong>descripción</strong> está siempre en el contexto: así el agente sabe que
+                                existe</li>
+                            <li>El <strong>cuerpo</strong> se lee al usarla: no ocupa contexto hasta entonces</li>
+                            <li>Se invoca escribiendo <code>/nombre</code> o la elige el agente</li>
+                            <li>Se comparte como cualquier fichero: git, un repo, <code>npx skills add</code></li>
+                        </ul>
+                    </div>
+                    <!-- EDITA AQUÍ: ejemplo de fichero (resumido) -->
+                    <div class="fichero fragment" data-fragment-index="1">
+                        <div class="ruta-fichero">.claude/skills/to-tickets/SKILL.md</div>
+                        <pre><code class="nohighlight">---
+name: to-tickets
+description: Parte una spec en tickets
+  independientes, con dependencias.
+---
+1. Lee la spec y el mapa del proyecto.
+2. Divide el trabajo en cortes verticales
+   que quepan en una sesión.
+3. Escribe cada ticket en issues/,
+   con tipo, criterio de aceptación
+   y de qué tickets depende.
+4. Pregunta antes de crear nada.</code></pre>
+                        <p class="pie-fichero">Ejemplo resumido</p>
+                    </div>
+                </div>
+                <p class="credito">Las skills del taller son de <strong>Matt Pocock</strong>:
+                    <a href="https://www.aihero.dev/skills">aihero.dev/skills</a> ·
+                    <a href="https://github.com/mattpocock/skills">github.com/mattpocock/skills</a>
+                </p>
+
+            </section>
+
+            <!-- ============ 13b. SKILLS COMO SISTEMA OPERATIVO (HTML) ============ -->
+            <section>
+                <h2>Las skills como sistema operativo de agentes</h2>
+                <p>Aplicar a nuestro trabajo lo que la ingeniería del software inventó para que colaboren las personas:
+                    tickets, especificaciones (<em>specs</em>), revisión de código, control de versiones.</p>
+                <!-- EDITA AQUÍ: tablero de tickets. Cada tarjeta: título y etiquetas -->
+                <div class="kanban fragment">
+                    <div class="columna">
+                        <h4>Por hacer</h4>
+                        <div class="tarjeta">04 · Asignación de tráfico (BPR)<span class="etiquetas"><span
+                                    class="tipo">task</span><span class="afk">AFK</span></span></div>
+                        <div class="tarjeta">05 · Análisis de resultados<span class="etiquetas"><span
+                                    class="tipo">task</span><span class="hitl">HITL</span></span></div>
+                    </div>
+                    <div class="columna">
+                        <h4>En curso</h4>
+                        <div class="tarjeta">03 · Red viaria de OSM<span class="etiquetas"><span
+                                    class="tipo">prototype</span><span class="hitl">HITL</span></span></div>
+                    </div>
+                    <div class="columna">
+                        <h4>Hecho</h4>
+                        <div class="tarjeta">01 · Concretar la pregunta<span class="etiquetas"><span
+                                    class="tipo">grilling</span><span class="hitl">HITL</span></span></div>
+                        <div class="tarjeta">02 · Capacidad de las vías con lluvia<span class="etiquetas"><span
+                                    class="tipo">research</span><span class="afk">AFK</span></span></div>
+                    </div>
+                </div>
+                <ul class="dos-puntos fragment">
+                    <li><strong>Tickets para colaborar</strong>: humano ↔ agente, agente ↔ agente</li>
+                    <li><strong>Tickets para gestionar el contexto</strong>: cada ticket cabe en una sesión; el estado
+                        vive en ficheros, no en la memoria del agente</li>
+                </ul>
+                <p class="credito">Idea y skills de <strong>Matt Pocock</strong>:
+                    <a href="https://www.aihero.dev/skills">aihero.dev/skills</a>
+                </p>
+
+            </section>
+
+            <!-- ============ 14. DÓNDE MANDA EL HUMANO ============ -->
+            <section data-markdown data-separator-notes="^Note:">
+                <textarea data-template>
+## Dónde manda el humano
+
+- **HITL** (*human in the loop*, con el humano en el bucle): despacio, con cuidado
+- **AFK** (*away from keyboard*, lejos del teclado): a toda velocidad
+
+<p class="suave pequeno" style="margin:1em 0 0.2em 0">Reparto del tiempo</p>
+<div class="reparto-comparado">
+<span class="etq-reparto">Sin agentes</span>
+<div class="reparto"><div class="disenar" style="width:20%">Diseñar</div><div class="implementar" style="width:60%">Implementar</div><div class="validar" style="width:20%">Validar</div></div>
+<span class="etq-reparto fragment" data-fragment-index="1">Con agentes</span>
+<div class="reparto fragment" data-fragment-index="1"><div class="disenar" style="width:55%">Diseñar y pensar</div><div class="implementar" style="width:15%">Impl.</div><div class="validar" style="width:30%">Validar</div></div>
+</div>
+
+Todos acabamos siendo *product managers*… o investigadores principales. <!-- .element: class="fragment" data-fragment-index="2" style="margin-top:1em" -->
+</textarea>
+            </section>
+
+            <!-- ============ 14b. RICK RUBIN (HTML + VÍDEO) ============ -->
+            <section class="video-rubin">
+                <h2>Cómo se siente llevar trabajando 6 meses sin programar</h2>
+                <div class="rubin">
+                    <a class="enlace-video" href="https://www.youtube.com/shorts/akcSX81KOv4">▶ Ver el vídeo en YouTube</a>
+                    <div>
+                        <blockquote>«El gusto es la clave»</blockquote>
+                        <p class="pie-video">Vídeo: Tudi Films, <a
+                                href="https://www.youtube.com/shorts/akcSX81KOv4">youtube.com/shorts/akcSX81KOv4</a>
+                        </p>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- ============ 15. SKILLS BÁSICAS ============ -->
+            <section data-markdown data-separator-notes="^Note:" class="skills">
+                <textarea data-template>
+## Skills básicas
+
+### Con el humano en el bucle (HITL)
+
+- `/grill-me`: te entrevista hasta entender el problema
+- `/wayfinder`: hoja de ruta y tickets para trabajos de varias sesiones
+- `/prototype`: código desechable para responder una pregunta
+- `/to-spec`: convierte la conversación en especificación
+- `/to-tickets`: la parte en tickets con dependencias
+- `/notebook-pairing`: análisis por fases en Jupyter; el agente propone y tú ejecutas
+
+### Lejos del teclado (AFK)
+
+- `/research`: investiga fuentes primarias en segundo plano
+- `/implement-spec`: implementa los tickets en paralelo con TDD
+- `/code-review`: revisión en dos ejes, spec y convenciones
+- `/handoff`: comprime la sesión en un documento para que otro agente continúe con contexto limpio
+</textarea>
+            </section>
+
+            <!-- ============ 16. PORTADA DE LA DEMO ============ -->
+            <section data-markdown data-separator-notes="^Note:" class="portada demo">
+                <textarea data-template>
+# ¿Por qué se colapsa el tráfico en Granada cuando llueve?
+
+Red viaria real (OpenStreetMap) + teoría de redes + una hipótesis contrastable
+
+<!-- EDITA AQUÍ: esquema de red. Vías en teja y más gruesas = saturadas; trazos claros = lluvia -->
+<svg class="diagrama red-demo" viewBox="0 0 520 520" width="460" height="460" role="img" aria-label="Esquema de una red viaria con las vías centrales saturadas bajo la lluvia">
+<g stroke="#d5e4f0" stroke-width="3" stroke-linecap="round">
+<line x1="40" y1="20" x2="28" y2="48"/><line x1="150" y1="130" x2="138" y2="158"/><line x1="330" y1="20" x2="318" y2="48"/><line x1="480" y1="150" x2="468" y2="178"/><line x1="170" y1="300" x2="158" y2="328"/><line x1="340" y1="300" x2="328" y2="328"/><line x1="100" y1="470" x2="88" y2="498"/><line x1="320" y1="480" x2="308" y2="508"/><line x1="500" y1="340" x2="488" y2="368"/><line x1="20" y1="300" x2="8" y2="328"/><line x1="260" y1="120" x2="248" y2="148"/><line x1="420" y1="20" x2="408" y2="48"/>
+</g>
+<g fill="none" stroke-linecap="round">
+<g stroke="#1f5f8b" stroke-width="3"><line x1="60" y1="80" x2="110" y2="230"/><line x1="110" y1="230" x2="70" y2="400"/><line x1="70" y1="400" x2="230" y2="380"/><line x1="390" y1="420" x2="480" y2="470"/><line x1="450" y1="250" x2="480" y2="470"/><line x1="220" y1="60" x2="400" y2="100"/></g>
+<g stroke="#8fb3d1" stroke-width="6"><line x1="60" y1="80" x2="220" y2="60"/><line x1="230" y1="380" x2="390" y2="420"/><line x1="400" y1="100" x2="450" y2="250"/><line x1="450" y1="250" x2="390" y2="420"/></g>
+<g stroke="#b8542a" stroke-width="10"><line x1="220" y1="60" x2="260" y2="210"/><line x1="110" y1="230" x2="260" y2="210"/><line x1="260" y1="210" x2="450" y2="250"/><line x1="260" y1="210" x2="230" y2="380"/></g>
+</g>
+<g fill="#17324d"><circle cx="60" cy="80" r="8"/><circle cx="220" cy="60" r="8"/><circle cx="400" cy="100" r="8"/><circle cx="110" cy="230" r="8"/><circle cx="260" cy="210" r="11"/><circle cx="450" cy="250" r="8"/><circle cx="70" cy="400" r="8"/><circle cx="230" cy="380" r="8"/><circle cx="390" cy="420" r="8"/><circle cx="480" cy="470" r="8"/></g>
+</svg>
+</textarea>
+            </section>
+
+            <!-- ============ 17. LA RUTA DE LA DEMO ============ -->
+            <section data-markdown data-separator-notes="^Note:" class="ruta">
+                <textarea data-template>
+## La ruta de la demo
+
+1. Preparar el repo<br>`/setup-matt-pocock-skills`<br><span class="hitl">HITL</span>
+2. `/wayfinder`<br>con vosotros: *grilling*<br><span class="hitl">HITL</span>
+3. *research*<br>en segundo plano<br><span class="afk">AFK</span>
+4. *prototype*<br>votáis<br><span class="hitl">HITL</span>
+5. `/to-spec` + `/to-tickets`<br><span class="hitl">HITL</span>
+6. `/implement-spec`<br><span class="afk">AFK</span>
+7. `/notebook-pairing`<br><span class="hitl">HITL</span>
+8. `/code-review`<br><span class="afk">AFK</span>
+
+<p class="nota-opencode">En OpenCode, las skills se invocan con <code>@</code>: <code>@wayfinder</code> en vez de <code>/wayfinder</code>.</p>
+</textarea>
+            </section>
+
+            <!-- ============ 18. HOJA DE RUTA (WAYFINDER) ============ -->
+            <section data-markdown data-separator-notes="^Note:" class="wayfinder">
+                <textarea data-template>
+## Hoja de ruta con `/wayfinder`
+
+```text
+.scratch/trafico-lluvia-granada/
+├── map.md
+└── issues/
+    ├── 01-research-datos-reales.md
+    ├── 02-research-factores-lluvia.md
+    ├── 03-prototype-trayectos.md
+    ├── 04-grilling-criticidad.md
+    ├── 05-task-cuaderno.md
+    └── …
+```
+
+- **El mapa**: destino, decisiones tomadas, «niebla» aún sin concretar y lo que queda fuera de alcance
+- **Tickets hijos** por tipo (*grilling*, *prototype*, *research*, *task*), con dependencias
+- **La frontera**: los tickets abiertos y desbloqueados; lo siguiente que se puede hacer
+- Todo vive en ficheros locales, versionados con git
+</textarea>
+            </section>
+
+            <!-- ============ 19. CONTEXTO LIMPIO ENTRE SESIONES ============ -->
+            <section data-markdown data-separator-notes="^Note:">
+                <textarea data-template>
+## Contexto limpio entre sesiones
+
+- Cada ticket, en una sesión nueva
+- El estado está en el mapa y en los tickets, no en la memoria del agente
+- Cuando una sesión se llena: `/handoff`
+
+<div class="sesiones fragment">
+<span class="etq-sesion">Sesión 1</span>
+<div class="ventana"><div class="util" style="width:60%"></div><div class="estupida" style="width:28%"></div></div>
+<span class="nota-sesion">llena: ya está en la zona estúpida</span>
+<span></span>
+<div class="traspaso"><code>/handoff</code> escribe un documento de traspaso: qué se ha hecho, qué falta, dónde está todo</div>
+<span class="etq-sesion">Sesión 2</span>
+<div class="ventana"><div class="util" style="width:9%"></div></div>
+<span class="nota-sesion">empieza limpia: mapa, ticket y traspaso</span>
+</div>
+</textarea>
+            </section>
+
+            <!-- ============ 20. LA FÁBRICA DE SOFTWARE (HTML + SVG) ============ -->
+            <section>
+                <h2>La fábrica de software</h2>
+                <svg class="diagrama" viewBox="0 0 1200 360" width="1200" height="360" role="img"
+                    aria-label="Spec y tickets, implementadores en paralelo, integración, revisión en dos ejes y humano">
+                    <defs>
+                        <marker id="punta20" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+                            orient="auto">
+                            <path d="M0,0 L10,5 L0,10 z" fill="#5a5f66" />
+                        </marker>
+                    </defs>
+                    <g fill="none" stroke="#1c1c1c" stroke-width="2">
+                        <rect x="0" y="95" width="180" height="120" fill="#eef0f2" />
+                        <rect x="240" y="15" width="210" height="70" fill="#d5e4f0" stroke="#1f5f8b" />
+                        <rect x="240" y="120" width="210" height="70" fill="#d5e4f0" stroke="#1f5f8b" />
+                        <rect x="240" y="225" width="210" height="70" fill="#d5e4f0" stroke="#1f5f8b" />
+                        <rect x="510" y="120" width="170" height="70" fill="#eef0f2" />
+                        <rect x="740" y="50" width="220" height="70" fill="#dcebdf" stroke="#3d7a4a" />
+                        <rect x="740" y="190" width="220" height="70" fill="#dcebdf" stroke="#3d7a4a" />
+                        <rect x="1020" y="120" width="170" height="70" fill="#1f5f8b" stroke="#17324d" stroke-width="3" />
+                    </g>
+                    <!-- EDITA AQUÍ: textos de las cajas -->
+                    <text x="90" y="130" text-anchor="middle" font-size="22" font-weight="600">Spec + tickets</text>
+                    <g stroke="#8e959e" stroke-width="2">
+                        <line x1="50" y1="160" x2="90" y2="185" />
+                        <line x1="130" y1="160" x2="90" y2="185" />
+                        <line x1="50" y1="160" x2="130" y2="160" />
+                    </g>
+                    <g fill="#5a5f66">
+                        <circle cx="50" cy="160" r="6" />
+                        <circle cx="130" cy="160" r="6" />
+                        <circle cx="90" cy="185" r="6" />
+                    </g>
+                    <text x="345" y="46" text-anchor="middle" font-size="22">Implementador 1</text>
+                    <text x="345" y="72" text-anchor="middle" font-size="18" class="suave">worktree · TDD</text>
+                    <text x="345" y="151" text-anchor="middle" font-size="22">Implementador 2</text>
+                    <text x="345" y="177" text-anchor="middle" font-size="18" class="suave">worktree · TDD</text>
+                    <text x="345" y="256" text-anchor="middle" font-size="22">Implementador 3</text>
+                    <text x="345" y="282" text-anchor="middle" font-size="18" class="suave">worktree · TDD</text>
+                    <text x="595" y="151" text-anchor="middle" font-size="22">Integración</text>
+                    <text x="595" y="177" text-anchor="middle" font-size="18" class="suave">(merger)</text>
+                    <text x="850" y="92" text-anchor="middle" font-size="22">Revisión: spec</text>
+                    <text x="850" y="232" text-anchor="middle" font-size="22">Revisión: convenciones</text>
+                    <text x="850" y="163" text-anchor="middle" font-size="22" class="suave">‖ en paralelo</text>
+                    <text x="1105" y="162" text-anchor="middle" font-size="24" font-weight="600"
+                        style="fill:#fff">Humano</text>
+                    <g fill="none" stroke="#5a5f66" stroke-width="2" marker-end="url(#punta20)">
+                        <path d="M182,130 L237,52" />
+                        <path d="M182,155 L237,155" />
+                        <path d="M182,180 L237,258" />
+                        <path d="M452,52 L507,140" />
+                        <path d="M452,155 L507,155" />
+                        <path d="M452,258 L507,170" />
+                        <path d="M682,145 L737,88" />
+                        <path d="M682,165 L737,222" />
+                        <path d="M962,88 L1017,140" />
+                        <path d="M962,222 L1017,170" />
+                    </g>
+                    <!-- EDITA AQUÍ: los tres frenos -->
+                    <g class="fragment">
+                        <line x1="240" y1="315" x2="680" y2="315" stroke="#c9cdd2" stroke-width="2" />
+                        <text x="460" y="345" text-anchor="middle" font-size="22">Freno 1: comprobaciones automáticas
+                            (tipos, tests)</text>
+                        <line x1="740" y1="315" x2="960" y2="315" stroke="#c9cdd2" stroke-width="2" />
+                        <text x="850" y="345" text-anchor="middle" font-size="22">Freno 2: revisión automática</text>
+                        <line x1="1020" y1="315" x2="1190" y2="315" stroke="#c9cdd2" stroke-width="2" />
+                        <text x="1105" y="345" text-anchor="middle" font-size="22">Freno 3: humana</text>
+                    </g>
+                </svg>
+                <!-- EDITA AQUÍ: cita y conexión con Lee -->
+                <blockquote class="fragment">«Un acelerador sin frenos es un cañón de basura» <span class="suave"
+                        style="font-family:var(--fuente-cuerpo);font-size:22px">(Matt Pocock)</span></blockquote>
+                <p class="fragment pequeno suave">El mismo esquema que Lee (2026): agentes de análisis, agente revisor y
+                    humano que dirige.</p>
+
+            </section>
+
+            <!-- ============ 21. IMPACTO SOCIAL ============ -->
+            <section data-markdown data-separator-notes="^Note:" class="impacto">
+                <textarea data-template>
+# Impacto social
+
+<img class="cartel" src="img/cartel-j2-informatica.jpg" alt="Cartel de las Jornadas multidisciplinares universitarias de solidaridad internacional y derechos humanos por Palestina, 1 de diciembre de 2026, ETSIIT">
+</textarea>
+            </section>
+
+            <!-- ============ 22. GRACIAS ============ -->
+            <section data-markdown data-separator-notes="^Note:" class="gracias">
+                <textarea data-template>
+## Gracias
+
+**Juan Helios García Guzmán**
+
+<div class="qrs">
+<figure><img src="img/qr-repo.svg" alt="QR del repositorio del taller"><figcaption>github.com/juanheliosg/taller-agentes-ia-granada</figcaption></figure>
+<figure><img src="img/qr-substack.svg" alt="QR de Agentic Simbirsk"><figcaption>substack.com/@agenticsimbirsk</figcaption></figure>
+</div>
+</textarea>
+            </section>
+
+        </div>
+    </div>
+
+    <script src="vendor/reveal.js/dist/reveal.js"></script>
+    <script src="vendor/reveal.js/plugin/markdown/markdown.js"></script>
+    <script src="vendor/reveal.js/plugin/highlight/highlight.js"></script>
+    <script src="vendor/reveal.js/plugin/notes/notes.js"></script>
+    <script>
+        Reveal.initialize({
+            width: 1280,
+            height: 720,
+            margin: 0.06,
+            center: false,
+            display: 'flex',
+            hash: true,
+            slideNumber: 'c',
+            controls: false,
+            transition: 'fade',
+            transitionSpeed: 'fast',
+            backgroundTransition: 'none',
+            pdfSeparateFragments: false,
+            plugins: [RevealMarkdown, RevealHighlight, RevealNotes]
+        });
+    </script>
+</body>
+
+</html>
