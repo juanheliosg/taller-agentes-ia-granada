@@ -1,7 +1,7 @@
 # Task: Cuaderno mínimo de extremo a extremo con un escenario
 
 Type: task
-Status: ready-for-agent
+Status: resolved
 Blocked by: Ninguno (puede empezar ya)
 Spec: [../spec.md](../spec.md)
 
@@ -21,3 +21,11 @@ Un cuaderno que carga la red de Granada, importa la muestra de trayectos (16 par
 ## Referencias
 
 Spec: Implementation Decisions (Módulos, Degradación) y Testing Decisions. Historias 1–7, 12–13, 15, 37–40, 42.
+
+## Answer
+
+Se construyó el paquete `trafico_lluvia/` (módulo de análisis, en la raíz), pruebas en `tests/` (14, con red sintética) y el cuaderno `cuaderno_lluvia.ipynb` con el escenario *moderada*. El cuaderno carga la red, importa y verifica la muestra (16 pares, tiempos secos contra `assets/trayectos.csv`, < 1 s), declara que es una muestra y no un modelo de la ciudad, y escribe las tablas en `salidas/` (ignorada por git).
+
+Ejecutar: `uv run pytest` y `uv run jupyter nbconvert --to notebook --execute --inplace cuaderno_lluvia.ipynb`.
+
+Interfaz (`trafico_lluvia/__init__.py`): `cargar_red`, `cargar_muestra(G)`, `verificar_muestra(G, muestra)`, `analizar(G, muestra, escenarios, nivel="central") -> Resultado(por_trayecto, por_corredor)`, `guardar_tablas`, `ESCENARIOS`, `Escenario`, `tabla_escenarios`, errores `ErrorGrafoNoEncontrado`, `ErrorMuestra`, `ErrorSinRuta`. Decisión: vías `motorway`/`trunk` (y `_link`) usan la columna interurbana; el resto, la urbana. Con moderada el factor sale entre 1,068 y 1,075 y ningún trayecto cambia de ruta.
