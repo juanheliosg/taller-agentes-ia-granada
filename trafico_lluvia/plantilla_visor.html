@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Trayectos periferia → centro, Granada</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font:14px system-ui,sans-serif;display:flex;height:100vh;color:#222}
+#lateral{width:300px;overflow:auto;padding:12px;border-right:1px solid #ddd;background:#fafafa}
+#principal{flex:1;position:relative}canvas{position:absolute;inset:0;width:100%;height:100%;background:#fff;cursor:grab}
+h1{font-size:15px;margin:0 0 4px}.nota{font-size:12px;color:#555;margin-bottom:10px}
+.corr{display:flex;align-items:center;gap:6px;padding:3px 4px;font-weight:600}
+.sw{width:12px;height:12px;border-radius:3px;flex:none}
+.tr{padding:2px 4px 2px 24px;font-size:12px;cursor:pointer;color:#444}.tr:hover{background:#f0f0f0}.tr.on{background:#ffe9a8}
+#barra{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:#222;border-radius:20px;padding:6px 8px;display:flex;gap:6px}
+#barra button{border:0;border-radius:14px;padding:6px 14px;background:#444;color:#fff;cursor:pointer}
+#info{position:absolute;top:8px;right:8px;background:#fffc;padding:6px 10px;border-radius:6px;font-size:12px;max-width:260px}
+</style></head><body>
+<div id="lateral"><h1>Trayectos periferia → Puerta Real</h1>
+<div class="nota">Muestra de accesos, no un modelo de la ciudad. Rueda: zoom · arrastrar: mover · clic en un trayecto (lista o ruta): zoom a él.</div>
+<div id="leyenda"></div></div>
+<div id="principal"><canvas id="cv"></canvas><div id="info"></div>
+<div id="barra"><button id="todo">Todo</button><!--BARRA_EXTRA--></div></div>
+<script id="datos" type="application/json">/*DATOS*/</script>
+<script>
+const D=JSON.parse(document.getElementById('datos').textContent);
+const COLS=['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b','#e377c2','#17becf','#bcbd22','#7f7f7f'];
+const corrs=[...new Set(D.rutas.map(r=>r.corredor))];
+const col=c=>COLS[corrs.indexOf(c)%COLS.length];
+const k=Math.cos(D.centro[1]*Math.PI/180);const P=([x,y])=>[x*k,-y];
+let view={cx:0,cy:0,s:1},sel=null,arrastre=null,movido=false;
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d'),princ=document.getElementById('principal');
+const W=()=>princ.clientWidth,H=()=>princ.clientHeight;
+function ajustar(pts){let a=1e9,b=1e9,c=-1e9,d=-1e9;pts.forEach(p=>{const q=P(p);a=Math.min(a,q[0]);c=Math.max(c,q[0]);b=Math.min(b,q[1]);d=Math.max(d,q[1])});
+ view={cx:(a+c)/2,cy:(b+d)/2,s:0.9*Math.min(W()/(c-a||1e-4),H()/(d-b||1e-4))}}
+const T=p=>{const q=P(p);return[(q[0]-view.cx)*view.s+W()/2,(q[1]-view.cy)*view.s+H()/2]};
+function kmHasta(pts){const R=6371,rad=Math.PI/180,[x0,y0]=D.centro,[x1,y1]=pts[0];
+ return Math.hypot((x1-x0)*rad*Math.cos(y0*rad),(y1-y0)*rad)*R}
+D.rutas.forEach(r=>{r.km=Math.round(kmHasta(r.pts)*100)/100});
+function dibujar(){
+ cv.width=W()*devicePixelRatio;cv.height=H()*devicePixelRatio;ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+ ctx.strokeStyle='#ddd';ctx.lineWidth=.6;ctx.beginPath();
+ D.fondo.forEach(e=>{const a=T([e[0],e[1]]),b=T([e[2],e[3]]);ctx.moveTo(...a);ctx.lineTo(...b)});ctx.stroke();
+ D.rutas.forEach((r,i)=>{const es=sel===i;ctx.strokeStyle=col(r.corredor);ctx.lineWidth=es?5:2;ctx.beginPath();
+  r.pts.forEach((p,j)=>{const q=T(p);j?ctx.lineTo(...q):ctx.moveTo(...q)});ctx.stroke();
+  const o=T(r.pts[0]);ctx.fillStyle=col(r.corredor);ctx.beginPath();ctx.arc(...o,es?7:4,0,7);ctx.fill()});
+ const c=T(D.centro);ctx.fillStyle='red';ctx.beginPath();ctx.arc(...c,8,0,7);ctx.fill();
+ if(window.dibujarExtra)window.dibujarExtra(ctx,T);
+ const r=D.rutas[sel];
+ document.getElementById('info').textContent=sel!=null?`${r.corredor}: ${r.km} km, ${r.t} s en seco (nodo ${r.origen})`:`${D.rutas.length} trayectos · ${corrs.length} corredores · destino Puerta Real`;
+ document.querySelectorAll('.tr').forEach(e=>e.classList.toggle('on',+e.dataset.i===sel))}
+const leyenda=document.getElementById('leyenda');
+corrs.forEach(c=>{let h=`<div class="corr"><span class="sw" style="background:${col(c)}"></span>${c}</div>`;
+ D.rutas.forEach((r,i)=>{if(r.corredor===c)h+=`<div class="tr" data-i="${i}">${r.km} km · ${r.t} s</div>`});leyenda.insertAdjacentHTML('beforeend',h)});
+function enfocar(i){sel=i;ajustar(i==null?D.rutas.flatMap(r=>r.pts):D.rutas[i].pts);dibujar()}
+leyenda.onclick=e=>{const t=e.target.closest('.tr');if(t)enfocar(+t.dataset.i)};
+document.getElementById('todo').onclick=()=>enfocar(null);
+cv.onclick=e=>{if(movido)return;const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;let mejor=null,bd=12;
+ D.rutas.forEach((q,i)=>{for(const p of q.pts){const t=T(p),d=Math.hypot(t[0]-x,t[1]-y);if(d<bd){bd=d;mejor=i}}});if(mejor!=null)enfocar(mejor)};
+princ.onmousedown=e=>{arrastre=[e.clientX,e.clientY];movido=false};
+window.onmouseup=()=>arrastre=null;
+window.onmousemove=e=>{if(!arrastre)return;const dx=e.clientX-arrastre[0],dy=e.clientY-arrastre[1];if(Math.abs(dx)+Math.abs(dy)>2)movido=true;
+ view.cx-=dx/view.s;view.cy-=dy/view.s;arrastre=[e.clientX,e.clientY];dibujar()};
+princ.onwheel=e=>{e.preventDefault();const f=e.deltaY<0?1.2:1/1.2,r=princ.getBoundingClientRect(),mx=e.clientX-r.left-W()/2,my=e.clientY-r.top-H()/2;
+ view.cx+=mx/view.s*(1-1/f);view.cy+=my/view.s*(1-1/f);view.s*=f;dibujar()};
+onresize=dibujar;enfocar(null);
+</script></body></html>
