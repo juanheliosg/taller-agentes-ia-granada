@@ -27,6 +27,7 @@ Un cuaderno reproducible que explique **mecanicistamente** por qué la red viari
 - [Datos reales de tráfico y lluvia en Granada](issues/01-research-datos-reales.md): hay serie municipal 2015–2026 (mensual × tipo de día × hora, 170 puntos, gratis) pero no aísla días de lluvia; AEMET exige clave y da diario; el contraste causal real exige TomTom/HERE o cesión del CGIM.
 - [Cuánto reduce la lluvia la velocidad y la capacidad](issues/02-research-factores-lluvia.md): velocidad urbana −3 % / −7 % / −11 % / −22 % (ligera→torrencial) y capacidad −3 % / −7 % / −14 % / −25 %; el HCM solo cubre autopistas y no hay calibración para Granada.
 - [Muestra de trayectos periferia→centro](issues/03-prototype-trayectos.md): 16 pares verificados contra `data/granada_drive.graphml`;destino Puerta Real, rutas con `nx.shortest_path(weight='travel_time')`; assets en `assets/trayectos.csv|txt|png`; ejecutable con `uv run python scripts/prototipo_trayectos.py`.muestra aceptada; falta comprobar si añadir acceso extra (Paseo del Salón) o Radio exterior.
+- [Métrica de criticidad estructural](issues/04-griling-criticidad.md): criticidad = betweenness de arista normalizada × factor de degradación; ranking de enlaces críticos por ese valor.
 
 ## Not yet specified
 

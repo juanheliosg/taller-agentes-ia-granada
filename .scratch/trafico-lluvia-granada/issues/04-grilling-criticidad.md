@@ -1,7 +1,7 @@
 # Grilling: métrica de criticidad estructural
 
 Type: grilling
-Status: open
+Status: resolved
 
 ## Question
 
@@ -9,4 +9,7 @@ Status: open
 
 ## Answer
 
-_(pendiente)_
+Aceptado Q1 (betweenness de arista) y Q2 (producto):
+
+- **Métrica de criticidad:** betweenness de arista sobre la red de la muestra de trayectos, calculada con `networkx.betweenness_centrality` ponderada por `travel_time`.
+- **Combinación con el factor de degradación:** `criticidad = betweenness_norm × factor_degradado`, ambos normalizados a [0, 1].
