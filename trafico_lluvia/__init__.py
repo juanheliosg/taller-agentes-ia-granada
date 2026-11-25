@@ -1,11 +1,12 @@
 """Análisis de degradación de la red viaria de Granada bajo lluvia."""
 
+from . import criticidad, sensibilidad
 from .analisis import ErrorSinRuta, Resultado, analizar, guardar_tablas
-from .escenarios import ESCENARIOS, Escenario, tabla_escenarios
+from .escenarios import ESCENARIOS, Escenario, tabla_capacidad_contexto, tabla_escenarios
 from .muestra import (
-    ampliar_muestra,
     ErrorGrafoNoEncontrado,
     ErrorMuestra,
+    ampliar_muestra,
     cargar_muestra,
     cargar_red,
     verificar_muestra,
@@ -13,18 +14,21 @@ from .muestra import (
 from .visor import generar_visor
 
 __all__ = [
-    "ampliar_muestra",
-    "generar_visor",
+    "ESCENARIOS",
     "ErrorGrafoNoEncontrado",
     "ErrorMuestra",
+    "ErrorSinRuta",
+    "Escenario",
+    "Resultado",
+    "ampliar_muestra",
+    "analizar",
     "cargar_muestra",
     "cargar_red",
-    "verificar_muestra",
-    "ESCENARIOS",
-    "Escenario",
-    "ErrorSinRuta",
-    "Resultado",
-    "analizar",
+    "criticidad",
+    "generar_visor",
     "guardar_tablas",
+    "sensibilidad",
+    "tabla_capacidad_contexto",
     "tabla_escenarios",
+    "verificar_muestra",
 ]

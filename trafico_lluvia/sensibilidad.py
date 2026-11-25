@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 import pandas as pd  # noqa: E402
 
 from .analisis import Resultado, analizar  # noqa: E402
-from .escenarios import Escenario  # noqa: E402
+from .escenarios import NIVELES, Escenario  # noqa: E402
 
 CLAVES = ["corredor", "origen", "destino", "escenario"]
 
@@ -26,9 +26,9 @@ def analizar_con_rango(G, muestra, escenarios) -> Resultado:
     central de sus trayectos; `banda_min`/`banda_max` son las medias de los
     factores con la reducción mínima y máxima del rango.
     """
-    central = analizar(G, muestra, escenarios, "central").por_trayecto
-    minimo = analizar(G, muestra, escenarios, "minimo").por_trayecto
-    maximo = analizar(G, muestra, escenarios, "maximo").por_trayecto
+    central = analizar(G, muestra, escenarios, NIVELES[0]).por_trayecto
+    minimo = analizar(G, muestra, escenarios, NIVELES[1]).por_trayecto
+    maximo = analizar(G, muestra, escenarios, NIVELES[2]).por_trayecto
     por_trayecto = central.drop(columns="nivel").copy()
     por_trayecto["factor_minimo"] = minimo["factor_degradacion"].to_numpy()
     por_trayecto["factor_maximo"] = maximo["factor_degradacion"].to_numpy()

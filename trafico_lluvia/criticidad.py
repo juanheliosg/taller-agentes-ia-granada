@@ -20,8 +20,8 @@ import networkx as nx
 import pandas as pd
 from matplotlib.collections import LineCollection
 
-from .analisis import _es_interurbana, _peso, _ruta
-from .escenarios import Escenario
+from .analisis import aristas_de_ruta, peso_aristas, ruta_optima
+from .escenarios import NIVELES, Escenario
 
 SEMILLA = 42
 
@@ -41,19 +41,6 @@ def betweenness_aristas(G, k=None, semilla=SEMILLA) -> dict:
     return {e: v / maximo for e, v in bruta.items()}
 
 
-def _aristas_de_ruta(G, ruta, escenario, nivel):
-    """Aristas (u, v, clave) de la ruta: en cada salto, la clave de menor tiempo degradado."""
-    for u, v in zip(ruta, ruta[1:]):
-        mejor = None
-        for clave, d in G[u][v].items():
-            t = d["travel_time"]
-            if escenario is not None:
-                t /= 1.0 - escenario.reduccion(_es_interurbana(d.get("highway")), nivel)
-            if mejor is None or t < mejor[0]:
-                mejor = (t, clave)
-        yield (u, v, mejor[1])
-
-
 def _nombre_via(G, arista) -> str:
     nombre = G.edges[arista].get("name")
     if isinstance(nombre, (list, tuple)):
@@ -62,7 +49,7 @@ def _nombre_via(G, arista) -> str:
 
 
 def calcular_criticidad(
-    G, muestra: pd.DataFrame, escenario: Escenario, nivel="central", k=None,
+    G, muestra: pd.DataFrame, escenario: Escenario, nivel=NIVELES[0], k=None,
     semilla=SEMILLA, betweenness=None,
 ) -> pd.DataFrame:
     """Tabla de criticidad por enlace usado por la muestra, ordenada de mayor a menor.
@@ -71,15 +58,15 @@ def calcular_criticidad(
     """
     if betweenness is None:
         betweenness = betweenness_aristas(G, k=k, semilla=semilla)
-    seco = _peso(None, nivel)
-    llu = _peso(escenario, nivel)
+    seco = peso_aristas(None, nivel)
+    llu = peso_aristas(escenario, nivel)
     factores: dict = {}
     corredores: dict = {}
     for fila in muestra.itertuples():
-        _, t_seco = _ruta(G, fila.origen, fila.destino, seco)
-        ruta, t_llu = _ruta(G, fila.origen, fila.destino, llu)
+        _, t_seco = ruta_optima(G, fila.origen, fila.destino, seco)
+        ruta, t_llu = ruta_optima(G, fila.origen, fila.destino, llu)
         factor = t_llu / t_seco
-        for arista in _aristas_de_ruta(G, ruta, escenario, nivel):
+        for arista in aristas_de_ruta(G, ruta, escenario, nivel):
             factores.setdefault(arista, []).append(factor)
             corredores.setdefault(arista, set()).add(fila.corredor)
 
@@ -125,11 +112,11 @@ def estabilidad_ranking(
     correlación de Spearman de la criticidad sobre los enlaces del central.
     """
     b = betweenness_aristas(G, k=k, semilla=semilla)  # una sola vez: no depende del nivel
-    central = calcular_criticidad(G, muestra, escenario, "central", betweenness=b)
+    central = calcular_criticidad(G, muestra, escenario, NIVELES[0], betweenness=b)
     top_central = set(map(tuple, ranking(central, n)[["u", "v", "clave"]].values))
     base = central.set_index(["u", "v", "clave"]).criticidad
     filas = []
-    for nivel in ("minimo", "maximo"):
+    for nivel in NIVELES[1:]:  # mínimo y máximo
         otro = calcular_criticidad(G, muestra, escenario, nivel, betweenness=b)
         top = set(map(tuple, ranking(otro, n)[["u", "v", "clave"]].values))
         comparada = otro.set_index(["u", "v", "clave"]).criticidad.reindex(base.index).fillna(0.0)

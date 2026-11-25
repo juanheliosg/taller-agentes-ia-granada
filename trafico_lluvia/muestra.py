@@ -10,7 +10,8 @@ import numpy as np
 import osmnx as ox
 import pandas as pd
 
-from .analisis import ErrorSinRuta, _peso, _ruta
+from .analisis import ErrorSinRuta, peso_aristas, ruta_optima
+from .escenarios import NIVELES
 
 RAIZ = Path(__file__).resolve().parent.parent
 GRAFO = RAIZ / "data" / "granada_drive.graphml"
@@ -84,10 +85,10 @@ def ampliar_muestra(G, muestra: pd.DataFrame, ruta_csv) -> pd.DataFrame:
 
 def verificar_muestra(G, muestra: pd.DataFrame, tolerancia_s: float = TOLERANCIA_S) -> None:
     """Comprueba que cada par tiene ruta y que su tiempo seco coincide con el CSV."""
-    seco = _peso(None, "central")
+    seco = peso_aristas(None, NIVELES[0])
     for fila in muestra.itertuples():
         try:
-            _, t = _ruta(G, fila.origen, fila.destino, seco)
+            _, t = ruta_optima(G, fila.origen, fila.destino, seco)
         except ErrorSinRuta as e:
             raise ErrorMuestra(f"Trayecto '{fila.corredor}': {e}") from e
         if abs(t - fila.tiempo_seco_csv_s) >= tolerancia_s:

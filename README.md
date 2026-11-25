@@ -29,6 +29,8 @@ uv run jupyter lab cuaderno_lluvia.ipynb          # interactivo
 uv run jupyter nbconvert --to notebook --execute cuaderno_lluvia.ipynb --output-dir /tmp/ejecutado   # de principio a fin
 ```
 
+**Vías forzadas del visor.** «Exportar rutas» guarda solo el par origen-destino y su tiempo óptimo; las vías intermedias que se fuerzan para la vista previa se **descartan** al exportar, y `ampliar_muestra` incorpora la ruta óptima, no la forzada.
+
 Pruebas: `uv run pytest` ejecuta todo, incluida la prueba de humo que corre el cuaderno entero (marcador `lento`, ~2 min). Para la ejecución rápida: `uv run pytest -m "not lento"`.
 
 ## Atribución

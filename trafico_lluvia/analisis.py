@@ -6,7 +6,7 @@ from pathlib import Path
 import networkx as nx
 import pandas as pd
 
-from .escenarios import Escenario
+from .escenarios import NIVELES, Escenario
 
 VIAS_INTERURBANAS = {"motorway", "motorway_link", "trunk", "trunk_link"}
 
@@ -29,28 +29,38 @@ def guardar_tablas(resultado: "Resultado", carpeta="salidas") -> None:
     resultado.por_corredor.to_csv(carpeta / "degradacion_por_corredor.csv", index=False)
 
 
-def _es_interurbana(highway) -> bool:
+def es_interurbana(highway) -> bool:
+    """Una arista es interurbana si su clase (o, con lista de tipos, ALGUNA de ellas: `any()`)
+    está en `VIAS_INTERURBANAS`."""
     clases = highway if isinstance(highway, (list, tuple)) else [highway]
     return any(c in VIAS_INTERURBANAS for c in clases)
 
 
-def _peso(escenario: Escenario | None, nivel: str):
-    """Peso de arista para Dijkstra: travel_time reescalado por 1/(1-δ) según clase."""
+def tiempo_arista(datos: dict, escenario: Escenario | None, nivel: str) -> float:
+    """Tiempo de una arista: `travel_time` reescalado por 1/(1-δ) según su clase de vía."""
+    t = datos["travel_time"]
+    if escenario is not None:
+        t = t / (1.0 - escenario.reduccion(es_interurbana(datos.get("highway")), nivel))
+    return t
+
+
+def peso_aristas(escenario: Escenario | None, nivel: str):
+    """Peso de arista para Dijkstra: `tiempo_arista`, mínimo entre aristas paralelas."""
 
     def peso(u, v, claves):
-        mejor = None
-        for d in claves.values():
-            t = d["travel_time"]
-            if escenario is not None:
-                delta = escenario.reduccion(_es_interurbana(d.get("highway")), nivel)
-                t = t / (1.0 - delta)
-            mejor = t if mejor is None else min(mejor, t)
-        return mejor
+        return min(tiempo_arista(d, escenario, nivel) for d in claves.values())
 
     return peso
 
 
-def _ruta(G, origen, destino, peso):
+def aristas_de_ruta(G, ruta, escenario: Escenario | None, nivel: str):
+    """Aristas (u, v, clave) de la ruta: en cada salto, la clave de menor tiempo."""
+    for u, v in zip(ruta, ruta[1:]):
+        clave = min(G[u][v], key=lambda k: tiempo_arista(G[u][v][k], escenario, nivel))
+        yield (u, v, clave)
+
+
+def ruta_optima(G, origen, destino, peso):
     try:
         ruta = nx.shortest_path(G, origen, destino, weight=peso)
     except (nx.NetworkXNoPath, nx.NodeNotFound) as e:
@@ -62,19 +72,19 @@ def _ruta(G, origen, destino, peso):
     return ruta, tiempo
 
 
-def analizar(G, muestra: pd.DataFrame, escenarios, nivel: str = "central") -> Resultado:
+def analizar(G, muestra: pd.DataFrame, escenarios, nivel: str = NIVELES[0]) -> Resultado:
     """Calcula, por trayecto y escenario, tiempo seco, tiempo con lluvia y factor.
 
     La ruta se recalcula con los tiempos degradados (no se reescala la seca).
     `nivel` elige la reducción central, mínima o máxima del rango.
     """
     escenarios = [escenarios] if isinstance(escenarios, Escenario) else list(escenarios)
-    seco = _peso(None, nivel)
+    seco = peso_aristas(None, nivel)
     filas = []
     for fila in muestra.itertuples():
-        ruta_seca, t_seco = _ruta(G, fila.origen, fila.destino, seco)
+        ruta_seca, t_seco = ruta_optima(G, fila.origen, fila.destino, seco)
         for e in escenarios:
-            ruta_ll, t_ll = _ruta(G, fila.origen, fila.destino, _peso(e, nivel))
+            ruta_ll, t_ll = ruta_optima(G, fila.origen, fila.destino, peso_aristas(e, nivel))
             filas.append(
                 {
                     "corredor": fila.corredor,
