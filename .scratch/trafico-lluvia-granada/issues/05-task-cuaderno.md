@@ -3,6 +3,7 @@
 Type: task
 Status: open
 Blocked by: 03, 04
+Spec: [../spec.md](../spec.md)
 
 ## Question
 
